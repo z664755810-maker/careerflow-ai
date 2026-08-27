@@ -1,0 +1,23 @@
+# CareerFlow AI 后端依赖
+# 安装：pip install -r requirements.txt
+# 推荐用 uv：uv pip install -r requirements.txt
+
+fastapi>=0.110
+uvicorn[standard]>=0.29
+sqlalchemy[asyncio]>=2.0
+asyncpg>=0.29          # PostgreSQL 异步驱动（生产）
+aiosqlite>=0.19        # SQLite 异步驱动（本地开发/测试）
+python-jose[cryptography]>=3.3
+passlib>=1.7
+pydantic[email]>=2.6
+pydantic-settings>=2.2
+python-multipart>=0.0.9
+openai>=1.30
+httpx>=0.27
+
+# 数据库迁移
+alembic>=1.13
+
+# 测试
+pytest>=8.0
+pytest-asyncio>=0.23
