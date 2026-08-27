@@ -84,7 +84,7 @@ onMounted(loadAll)
       <el-progress
         type="dashboard"
         :percentage="result.match_score ?? 0"
-        :color="result.match_score >= 70 ? '#67c23a' : '#e6a23c'"
+        :color="(result.match_score ?? 0) >= 70 ? '#67c23a' : '#e6a23c'"
       />
       <h3>分析建议</h3>
       <el-alert :closable="false" type="success">{{ result.match_summary }}</el-alert>
