@@ -51,7 +51,7 @@ async function submit() {
         show-icon
         style="margin-top: 14px"
         title="演示账号（体验用）"
-        description="demo@careerflow.app / CareerFlow2026"
+        description="demo@careerflow.app / CareerFlow2026 —— 登录即可看到 4 份示例简历、4 份示例 JD 与历史分析记录"
       />
     </el-card>
   </div>

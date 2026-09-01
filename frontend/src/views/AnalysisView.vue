@@ -21,6 +21,14 @@ const questions = computed<string[]>(() => {
   }
 })
 
+// 把分析记录里的 resume_id / job_id 映射成标题，让历史更直观
+const resumeMap = computed<Record<number, string>>(() =>
+  Object.fromEntries(resumes.value.map((r) => [r.id, r.title])),
+)
+const jobMap = computed<Record<number, string>>(() =>
+  Object.fromEntries(jobs.value.map((j) => [j.id, j.title])),
+)
+
 async function loadAll() {
   ;[resumes.value, jobs.value, analyses.value] = await Promise.all([
     api.listResumes(),
@@ -97,14 +105,26 @@ onMounted(loadAll)
     <el-card style="margin-top: 16px">
       <h3>历史分析</h3>
       <el-table :data="analyses" empty-text="暂无历史">
-        <el-table-column label="评分" width="100">
-          <template #default="{ row }">{{ row.match_score ?? '-' }}</template>
+        <el-table-column label="简历" min-width="180">
+          <template #default="{ row }">{{ resumeMap[row.resume_id] ?? '-' }}</template>
         </el-table-column>
-        <el-table-column label="时间" width="200">
+        <el-table-column label="JD" min-width="180">
+          <template #default="{ row }">{{ jobMap[row.job_id] ?? '-' }}</template>
+        </el-table-column>
+        <el-table-column label="评分" width="90">
+          <template #default="{ row }">
+            <el-tag :type="(row.match_score ?? 0) >= 70 ? 'success' : 'warning'">
+              {{ row.match_score ?? '-' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="时间" width="170">
           <template #default="{ row }">{{ new Date(row.created_at).toLocaleString() }}</template>
         </el-table-column>
-        <el-table-column label="建议摘要">
-          <template #default="{ row }">{{ row.match_summary }}</template>
+        <el-table-column label="建议摘要" min-width="260">
+          <template #default="{ row }">
+            <span style="color: #909399; font-size: 13px">{{ row.match_summary }}</span>
+          </template>
         </el-table-column>
       </el-table>
     </el-card>

@@ -203,7 +203,7 @@ Render 控制台 → **New** → **Blueprint** → 选仓库，自动按 `render
 | `LLM_API_KEY` | 你的 LLM Key | 推荐 dashscope（通义千问）规避智谱免费档 429 |
 | `LLM_BASE_URL` | `https://dashscope.aliyuncs.com/compatible-mode/v1` | OpenAI 兼容；智谱则 `https://open.bigmodel.cn/api/paas/v4` |
 | `LLM_MODEL` | `qwen-plus` | 智谱则 `glm-4-flash` |
-| `AUTO_SEED` | `1` | 数据库为空时自动灌演示数据（演示账号+样例简历/JD） |
+| `AUTO_SEED` | `1` | 数据库为空时自动灌演示数据（演示账号 + 4 份示例简历 + 4 份示例 JD + 历史分析记录） |
 | `DEMO_PASSWORD` | `CareerFlow2026` | 演示账号密码（可改） |
 | `DATABASE_URL` | （不设，用默认 SQLite） | Free 实例用 SQLite；临时文件系统重启会清库，由 seed 兜底 |
 
@@ -214,7 +214,8 @@ Render 控制台 → **New** → **Blueprint** → 选仓库，自动按 `render
 ### 验证（部署后必做）
 
 浏览器真实走一遍：① 根路径应看到前端 UI（非 Swagger）；② 用演示账号登录；
-③ 进入 AI 分析页选示例简历+JD → 出匹配度评分+建议+模拟面试题。
+③「简历 / JD」页应各列出 4 条示例数据，可演示新建 / 编辑 / 删除；
+④ 进入 AI 分析页，历史表格默认已有 5 条示例分析（含高/中/低匹配度），选简历+JD 点「开始分析」可生成实时结果（需 `LLM_API_KEY`）。
 若根路径只看到 Swagger，说明 `dist` 未正确拷入 `/app/static`。
 
 ---
