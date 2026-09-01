@@ -35,6 +35,9 @@ class User(Base):
     analyses: Mapped[list["Analysis"]] = relationship(
         back_populates="owner", cascade="all, delete-orphan"
     )
+    applications: Mapped[list["Application"]] = relationship(
+        back_populates="owner", cascade="all, delete-orphan"
+    )
 
 
 class Resume(Base):
@@ -93,3 +96,40 @@ class Analysis(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     owner: Mapped["User"] = relationship(back_populates="analyses")
+
+
+# 投递状态枚举（用字符串存储，保持跨数据库可移植、便于前端直接映射）
+APPLICATION_STATUSES = ["wishlist", "applied", "interview", "offer", "rejected"]
+
+
+class Application(Base):
+    """投递管理：将简历与 JD 关联为一次「投递」，并跟踪其进展状态。
+
+    设计取舍：
+    - 同时存 resume_id/job_id（外键，删除源数据时置空）与 resume_title/job_title（快照）。
+      快照保证即便用户删除了源简历/JD，看板上仍能看到「当时投的是什么」，符合真实求职场景。
+    """
+
+    __tablename__ = "applications"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    resume_id: Mapped[int | None] = mapped_column(
+        ForeignKey("resumes.id", ondelete="SET NULL"), nullable=True
+    )
+    job_id: Mapped[int | None] = mapped_column(
+        ForeignKey("jobs.id", ondelete="SET NULL"), nullable=True
+    )
+    resume_title: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    job_title: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="wishlist", nullable=False)
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
+    )
+
+    owner: Mapped["User"] = relationship(back_populates="applications")

@@ -244,5 +244,7 @@ Render 控制台 → **New** → **Blueprint** → 选仓库，自动按 `render
 - [x] GitHub Actions CI（pytest + ruff + 前端构建）
 - [x] pytest 覆盖核心接口与鉴权
 - [x] Render 部署就绪（多阶段 Docker 同源托管 + start.py 读 $PORT + 自动 seed 应对临时文件系统）
+- [x] 简历 / JD 文件上传解析（`.txt/.md/.pdf/.docx`；`pypdf`+`python-docx` 抽取文本，扩展名白名单 + 3MB 上限 + 空内容拒绝）
+- [x] 投递管理看板（Application Tracker：状态机 `wishlist→applied→interview→offer→rejected` 闭环 + 看板 UI + 统计卡 + 5 条示例投递）
 - [ ] 部署上线拿可点链接（需你提供 Render 账号，按上文部署步骤操作；我无 Render 凭证，无法代点控制台）
 - [ ] 演示截图（部署后浏览器实测补充）

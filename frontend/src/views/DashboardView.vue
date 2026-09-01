@@ -2,12 +2,13 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import * as api from '../utils/api'
-import type { Analysis, Job, Resume } from '../types'
+import type { Analysis, Application, Job, Resume } from '../types'
 
 const router = useRouter()
 const resumes = ref<Resume[]>([])
 const jobs = ref<Job[]>([])
 const analyses = ref<Analysis[]>([])
+const applications = ref<Application[]>([])
 const loading = ref(false)
 
 const resumeMap = computed<Record<number, string>>(() =>
@@ -31,10 +32,11 @@ function scoreTag(score: number | null) {
 async function loadAll() {
   loading.value = true
   try {
-    ;[resumes.value, jobs.value, analyses.value] = await Promise.all([
+    ;[resumes.value, jobs.value, analyses.value, applications.value] = await Promise.all([
       api.listResumes(),
       api.listJobs(),
       api.listAnalyses(),
+      api.listApplications(),
     ])
   } finally {
     loading.value = false
@@ -64,6 +66,11 @@ onMounted(loadAll)
         <div class="cf-stat-ico">💼</div>
         <div class="cf-stat-label">职位 JD</div>
         <div class="cf-stat-value">{{ jobs.length }}</div>
+      </el-card>
+      <el-card class="cf-stat-card" shadow="hover">
+        <div class="cf-stat-ico">📮</div>
+        <div class="cf-stat-label">投递记录</div>
+        <div class="cf-stat-value">{{ applications.length }}</div>
       </el-card>
       <el-card class="cf-stat-card" shadow="hover">
         <div class="cf-stat-ico">🤖</div>

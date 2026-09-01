@@ -11,6 +11,8 @@ const editingId = ref<number | null>(null)
 const form = reactive({ title: '', description: '' })
 const viewVisible = ref(false)
 const viewData = reactive({ title: '', content: '' })
+const jobFileInput = ref<HTMLInputElement | null>(null)
+const uploading = ref(false)
 
 async function load() {
   loading.value = true
@@ -71,6 +73,23 @@ async function remove(j: Job) {
 }
 
 onMounted(load)
+
+async function onJobFile(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  uploading.value = true
+  try {
+    const j = await api.uploadJob(file)
+    ElMessage.success(`已解析并创建 JD：「${j.title}」`)
+    await load()
+  } catch (err: any) {
+    ElMessage.error(err.response?.data?.detail || '解析失败')
+  } finally {
+    uploading.value = false
+  }
+}
 </script>
 
 <template>
@@ -81,6 +100,14 @@ onMounted(load)
         <div class="cf-page-sub">归档你心仪岗位的职位描述，作为 AI 匹配的基准</div>
       </div>
       <el-button type="primary" @click="openCreate">+ 新建 JD</el-button>
+      <el-button @click="jobFileInput?.click()">📎 上传文件</el-button>
+      <input
+        ref="jobFileInput"
+        type="file"
+        accept=".txt,.md,.pdf,.docx"
+        style="display: none"
+        @change="onJobFile"
+      />
     </div>
 
     <el-table :data="jobs" v-loading="loading" empty-text="还没有 JD，点右上角新建">

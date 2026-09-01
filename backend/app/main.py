@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import analysis, auth, jobs, resumes
+from app.api import analysis, applications, auth, jobs, resumes
 from app.config import settings
 from app.database import init_db
 
@@ -34,7 +34,9 @@ async def lifespan(app: FastAPI):
     logger.info("数据库已初始化（%s）", "SQLite" if settings.is_sqlite else "PostgreSQL")
 
     # 自动 seed：后台任务，不阻塞 uvicorn 启动（避免超 PaaS healthcheck 被判 unhealthy）
-    if settings.auto_seed and _HAS_FRONTEND:
+    # 仅由 AUTO_SEED 控制，与是否挂载前端静态目录解耦——
+    # 否则 Docker/无前端目录下（如 Render）永远无法灌入演示数据，看板一进去是空的。
+    if settings.auto_seed:
         from app.seed import _auto_seed
 
         asyncio.create_task(_auto_seed())
@@ -60,6 +62,7 @@ app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(resumes.router, prefix=settings.api_prefix)
 app.include_router(jobs.router, prefix=settings.api_prefix)
 app.include_router(analysis.router, prefix=settings.api_prefix)
+app.include_router(applications.router, prefix=settings.api_prefix)
 
 
 @app.get("/health", tags=["meta"])

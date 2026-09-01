@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Analysis, Job, Resume, User } from '../types'
+import type { Analysis, Application, ApplicationStatus, Job, Resume, User } from '../types'
 
 // API 基地址：默认走同源 /api（开发由 Vite 代理，生产由 Vercel 重写）
 const base = import.meta.env.VITE_API_BASE || '/api'
@@ -88,6 +88,59 @@ export async function updateJob(
 }
 export async function deleteJob(id: number): Promise<void> {
   await api.delete(`/jobs/${id}`)
+}
+
+// ---------- 文件上传解析 ----------
+export async function uploadResume(file: File, title?: string): Promise<Resume> {
+  const fd = new FormData()
+  fd.append('file', file)
+  if (title) fd.append('title', title)
+  const { data } = await api.post<Resume>('/resumes/upload', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return data
+}
+
+export async function uploadJob(file: File, title?: string): Promise<Job> {
+  const fd = new FormData()
+  fd.append('file', file)
+  if (title) fd.append('title', title)
+  const { data } = await api.post<Job>('/jobs/upload', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return data
+}
+
+// ---------- 投递管理 ----------
+export async function listApplications(status?: ApplicationStatus): Promise<Application[]> {
+  const { data } = await api.get<Application[]>('/applications', {
+    params: status ? { status } : {},
+  })
+  return data
+}
+export async function createApplication(
+  resume_id: number,
+  job_id: number,
+  status: ApplicationStatus = 'wishlist',
+  notes = '',
+): Promise<Application> {
+  const { data } = await api.post<Application>('/applications', {
+    resume_id,
+    job_id,
+    status,
+    notes,
+  })
+  return data
+}
+export async function updateApplication(
+  id: number,
+  payload: Partial<{ status: ApplicationStatus; applied_at: string | null; notes: string }>,
+): Promise<Application> {
+  const { data } = await api.put<Application>(`/applications/${id}`, payload)
+  return data
+}
+export async function deleteApplication(id: number): Promise<void> {
+  await api.delete(`/applications/${id}`)
 }
 
 // ---------- AI 分析 ----------

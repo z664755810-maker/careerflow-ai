@@ -24,6 +24,8 @@ from sqlalchemy import text  # noqa: E402
 
 from app.database import AsyncSessionLocal, Base, engine, init_db  # noqa: E402
 from app.main import app  # noqa: E402
+from app.models import User  # noqa: E402
+from app.security import hash_password  # noqa: E402
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -40,6 +42,25 @@ async def _clean_tables():
     yield
     async with AsyncSessionLocal() as session:
         # 先删子表再删父表，避免外键约束冲突
-        for table in ("analyses", "resumes", "jobs", "users"):
+        for table in ("analyses", "applications", "resumes", "jobs", "users"):
             await session.execute(text(f"DELETE FROM {table}"))
         await session.commit()
+
+
+async def _make_user(db, email: str, password: str) -> User:
+    """测试用：创建用户并返回 ORM 对象（已 flush，含 id）。"""
+    user = User(email=email, hashed_password=hash_password(password))
+    db.add(user)
+    await db.flush()
+    return user
+
+
+async def _login(email: str, password: str) -> str:
+    """测试用：登录并返回 access_token。"""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        r = await client.post(
+            "/api/auth/login",
+            data={"username": email, "password": password},
+        )
+        return r.json()["access_token"]

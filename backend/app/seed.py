@@ -16,11 +16,12 @@ from __future__ import annotations
 import json
 import logging
 import os
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, select
 
 from app.database import AsyncSessionLocal
-from app.models import Analysis, Job, Resume, User
+from app.models import Analysis, Application, Job, Resume, User
 from app.security import hash_password
 
 logger = logging.getLogger("careerflow.seed")
@@ -247,6 +248,17 @@ SAMPLE_ANALYSES: list[dict] = [
 ]
 
 
+# ============ 示例投递记录（让「投递管理看板」一进入就有数据）============
+# resume_idx / job_idx 引用上面简历 / JD 的下标；applied_offset_days 为距今天数（None 表示尚未投递）。
+SAMPLE_APPLICATIONS: list[dict] = [
+    {"resume_idx": 0, "job_idx": 0, "status": "interview", "notes": "已完成一面，等二面通知。面试官关注实施现场经验。", "applied_offset_days": 14},
+    {"resume_idx": 1, "job_idx": 1, "status": "applied", "notes": "牛客内推投递，HR 已读简历，等待笔试链接。", "applied_offset_days": 6},
+    {"resume_idx": 2, "job_idx": 2, "status": "wishlist", "notes": "作品集还在打磨，准备本周内投递。", "applied_offset_days": None},
+    {"resume_idx": 3, "job_idx": 3, "status": "offer", "notes": "已发口头 offer，正在谈薪与入职时间。", "applied_offset_days": 21},
+    {"resume_idx": 0, "job_idx": 1, "status": "rejected", "notes": "方向偏研发，与实施背景不匹配，已回绝。", "applied_offset_days": 28},
+]
+
+
 async def _auto_seed() -> None:
     """后台任务：数据库为空时灌入演示数据。失败不影响启动。"""
     async with AsyncSessionLocal() as db:
@@ -291,13 +303,35 @@ async def _auto_seed() -> None:
                     )
                 )
 
+            # 示例投递记录（引用简历 / JD，含状态、备注、投递日期）
+            now = datetime.now(timezone.utc)
+            for ap in SAMPLE_APPLICATIONS:
+                applied_at = (
+                    now - timedelta(days=ap["applied_offset_days"])
+                    if ap["applied_offset_days"] is not None
+                    else None
+                )
+                db.add(
+                    Application(
+                        owner_id=user.id,
+                        resume_id=resume_ids[ap["resume_idx"]],
+                        job_id=job_ids[ap["job_idx"]],
+                        resume_title=SAMPLE_RESUMES[ap["resume_idx"]]["title"],
+                        job_title=SAMPLE_JOBS[ap["job_idx"]]["title"],
+                        status=ap["status"],
+                        applied_at=applied_at,
+                        notes=ap["notes"],
+                    )
+                )
+
             await db.commit()
             logger.info(
-                "已灌入演示数据（演示账号 %s：%d 简历 / %d JD / %d 分析）",
+                "已灌入演示数据（演示账号 %s：%d 简历 / %d JD / %d 分析 / %d 投递）",
                 DEMO_EMAIL,
                 len(SAMPLE_RESUMES),
                 len(SAMPLE_JOBS),
                 len(SAMPLE_ANALYSES),
+                len(SAMPLE_APPLICATIONS),
             )
         except Exception as e:  # 演示数据失败不应阻断服务
             await db.rollback()

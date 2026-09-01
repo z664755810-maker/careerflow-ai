@@ -11,6 +11,8 @@ const editingId = ref<number | null>(null)
 const form = reactive({ title: '', content: '' })
 const viewVisible = ref(false)
 const viewData = reactive({ title: '', content: '' })
+const resumeFileInput = ref<HTMLInputElement | null>(null)
+const uploading = ref(false)
 
 async function load() {
   loading.value = true
@@ -71,6 +73,23 @@ async function remove(r: Resume) {
 }
 
 onMounted(load)
+
+async function onResumeFile(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = '' // 允许重复选择同一文件
+  if (!file) return
+  uploading.value = true
+  try {
+    const r = await api.uploadResume(file)
+    ElMessage.success(`已解析并创建简历：「${r.title}」`)
+    await load()
+  } catch (err: any) {
+    ElMessage.error(err.response?.data?.detail || '解析失败')
+  } finally {
+    uploading.value = false
+  }
+}
 </script>
 
 <template>
@@ -81,6 +100,14 @@ onMounted(load)
         <div class="cf-page-sub">管理你的多份简历，AI 分析时会调用这里的全文</div>
       </div>
       <el-button type="primary" @click="openCreate">+ 新建简历</el-button>
+      <el-button @click="resumeFileInput?.click()">📎 上传文件</el-button>
+      <input
+        ref="resumeFileInput"
+        type="file"
+        accept=".txt,.md,.pdf,.docx"
+        style="display: none"
+        @change="onResumeFile"
+      />
     </div>
 
     <el-table :data="resumes" v-loading="loading" empty-text="还没有简历，点右上角新建">

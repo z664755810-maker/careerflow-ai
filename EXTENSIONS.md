@@ -20,15 +20,19 @@
 
 ## 二、P0：直接拉升"真实业务感"的功能
 
-### 1. 简历 / JD 文件上传与解析（最该做）
-- **做什么**：`POST /resumes/upload`（multipart 文件）→ 后端用 `pdfplumber` / `python-docx` 抽取文本 → 存 `content`；可选再用 LLM 抽取「姓名/学校/技能/项目」结构化字段。
-- **价值**：消除"手动粘贴全文"的违和感，贴合真实简历是文件的事实；前端加 `el-upload` 即可。
-- **工作量**：后端 ~120 行 + 前端 1 个上传组件；依赖 `pdfplumber`、`docx2txt`（均可 pip 装，无需系统库）。
+### 1. 简历 / JD 文件上传与解析（最该做）✅ 已实现
+- **做什么**：`POST /resumes/upload` 与 `POST /jobs/upload`（multipart 文件）→ 后端抽取文本 → 存 `content`。
+- **支持格式**：`.txt / .md / .pdf / .docx`；PDF 用 `pypdf`，Word 用 `python-docx`，纯文本做 utf-8/gbk/latin-1 兜底解码。
+- **安全**：白名单校验扩展名 + 3MB 大小上限 + 空内容拒绝（400），防止任意文件上传与超大文件。
+- **价值**：消除"手动粘贴全文"的违和感，贴合真实简历是文件的事实；前端 `ResumeView`/`JobView` 已加「📎 上传文件」按钮。
+- **工作量**：后端 `upload_utils.py` + 两个路由 ~120 行 + 前端上传组件；依赖 `pypdf`、`python-docx`（均可 pip 装，无需系统库）。
 
-### 2. 投递管理看板（Application Tracker）—— 让"求职"闭环
-- **做什么**：新增 `applications` 表（company, role, stage[投递/笔试/面试/offer/拒], match_analysis_id, next_action, remind_at）；前端看板按阶段分列（类 Trello）。
-- **价值**：把"分析"接到"行动"上——分析完一键「生成投递卡片」，简历/JD/分析结果形成闭环。这是招聘 SaaS 的核心模块。
-- **工作量**：模型 + CRUD + 看板视图，中等。
+### 2. 投递管理看板（Application Tracker）—— 让"求职"闭环 ✅ 已实现
+- **做什么**：新增 `applications` 表（`resume_id`/`job_id` 外键 + `resume_title`/`job_title` 快照 + `status` + `applied_at` + `notes`）；状态机 `wishlist → applied → interview → offer → rejected`。
+- **接口**：`POST /applications`、`GET /applications?status=`、`GET/PUT/DELETE /applications/{id}`，全部按 `owner_id` 隔离；非法状态返回 422。
+- **前端**：`ApplicationsView.vue` 看板，5 列状态分栏 + 统计卡（总数/进行中/已拿 offer），卡片可内联改状态、编辑备注、删除；`DashboardView` 增加「投递记录」统计卡。
+- **价值**：把"分析"接到"行动"上——分析完在投递看板跟踪进展，简历/JD/分析/投递形成闭环。这是招聘 SaaS 的核心模块。
+- **工作量**：模型 + 校验 + CRUD + 看板视图，中等；并已灌入 5 条示例投递（覆盖全部状态）让看板一进去就有数据。
 
 ### 3. 分析深度多维化（技能/经验/学历/薪资四维）
 - **做什么**：改 LLM prompt 输出 `skill_match / exp_match / education_match / salary_fit` 子分 + 总评；前端雷达图展示。
@@ -80,4 +84,5 @@
 
 - Free 实例 SQLite 重启清库：依赖 seed 兜底，但**用户自己创建的数据会丢**。若要当作真产品，应升级 Render Postgres 付费档（约 $7/月）或加定期导出。
 - LLM 调用无缓存：同一对简历/JD 重复分析会重复花钱，建议 `UNIQUE(resume_id, job_id)` + 命中直接返回。
-- 无速率限制/无文件大小校验：上传功能上线前必须补。
+- 无速率限制：上传功能已加扩展名白名单 + 3MB 大小上限，但仍建议上线前补接口级限流（防刷/防滥用）。
+- 用户自创数据在 Free 实例重启后会丢：演示数据靠 seed 兜底，但**用户自己创建的数据会丢**。若要当真产品，应升级 Render Postgres 付费档（约 $7/月）或加定期导出（见 P1-5）。
