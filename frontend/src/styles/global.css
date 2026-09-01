@@ -1,0 +1,227 @@
+/* ===== CareerFlow 全局视觉基调 ===== */
+:root {
+  /* 主题色：靛蓝 -> 紫，呼应 AI / 求职 */
+  --cf-primary: #4f46e5;
+  --cf-primary-dark: #4338ca;
+  --cf-violet: #7c3aed;
+  --cf-bg: #f5f6fb;
+  --cf-sidebar: #1e1b4b;
+  --cf-sidebar-2: #312e81;
+  --el-color-primary: #4f46e5;
+  --el-color-primary-light-3: #7c77ec;
+  --el-color-primary-light-5: #a5a1f2;
+  --el-color-primary-light-7: #cfcdf8;
+  --el-color-primary-light-8: #e3e2fb;
+  --el-color-primary-light-9: #f1f0fd;
+  --el-color-primary-dark-2: #4338ca;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system,
+    sans-serif;
+  background: var(--cf-bg);
+  color: #1f2937;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c7c9d9;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a9acbf;
+}
+
+/* 卡片统一质感 */
+.el-card {
+  border: none !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 20px rgba(30, 27, 75, 0.06) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.el-card:hover {
+  box-shadow: 0 8px 30px rgba(30, 27, 75, 0.1) !important;
+}
+
+.el-button {
+  border-radius: 9px !important;
+}
+
+/* ===== 侧边栏布局 ===== */
+.cf-layout {
+  min-height: 100vh;
+}
+
+.cf-sidebar {
+  background: linear-gradient(180deg, var(--cf-sidebar) 0%, var(--cf-sidebar-2) 100%);
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  border-right: none;
+}
+
+.cf-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 20px 18px;
+}
+.cf-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--cf-primary), var(--cf-violet));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 1px;
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+}
+.cf-brand-name {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.cf-brand-sub {
+  font-size: 12px;
+  color: #a5b4fc;
+}
+
+.cf-side-menu {
+  border-right: none !important;
+  flex: 1;
+  padding: 6px 12px;
+}
+.cf-side-menu .el-menu-item {
+  border-radius: 10px;
+  margin: 4px 0;
+  height: 46px;
+  font-size: 14px;
+}
+.cf-side-menu .el-menu-item.is-active {
+  background: linear-gradient(135deg, var(--cf-primary), var(--cf-violet)) !important;
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+}
+.cf-nav-icon {
+  margin-right: 10px;
+  font-size: 16px;
+}
+
+.cf-side-footer {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.cf-user-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cf-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f472b6, #7c3aed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+}
+.cf-user-email {
+  font-size: 13px;
+  color: #e0e7ff;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cf-logout {
+  padding: 0 !important;
+  height: auto !important;
+  font-size: 12px !important;
+  color: #a5b4fc !important;
+}
+
+.cf-main {
+  padding: 28px 32px;
+  background: var(--cf-bg);
+}
+
+/* 页面标题区 */
+.cf-page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.cf-page-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+.cf-page-sub {
+  color: #6b7280;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* 统计卡片 */
+.cf-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.cf-stat-card {
+  padding: 18px 20px;
+}
+.cf-stat-label {
+  color: #6b7280;
+  font-size: 13px;
+}
+.cf-stat-value {
+  font-size: 30px;
+  font-weight: 800;
+  margin-top: 6px;
+  background: linear-gradient(135deg, var(--cf-primary), var(--cf-violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.cf-stat-ico {
+  float: right;
+  font-size: 26px;
+  opacity: 0.85;
+}
+
+/* 内容预览对话框 */
+.cf-preview {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.7;
+  max-height: 60vh;
+  overflow: auto;
+  font-size: 14px;
+  color: #374151;
+  background: #fafafe;
+  border-radius: 10px;
+  padding: 14px 16px;
+}

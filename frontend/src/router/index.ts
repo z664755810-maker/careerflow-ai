@@ -26,7 +26,13 @@ const routes = [
     component: () => import('../views/AnalysisView.vue'),
     meta: { requiresAuth: true },
   },
-  { path: '/', redirect: '/resumes' },
+  {
+    path: '/dashboard',
+    name: 'dashboard',
+    component: () => import('../views/DashboardView.vue'),
+    meta: { requiresAuth: true },
+  },
+  { path: '/', redirect: '/dashboard' },
 ]
 
 const router = createRouter({
@@ -40,7 +46,7 @@ router.beforeEach((to) => {
     return { name: 'login' }
   }
   if ((to.name === 'login' || to.name === 'register') && auth.token) {
-    return { name: 'resumes' }
+    return { name: 'dashboard' }
   }
 })
 

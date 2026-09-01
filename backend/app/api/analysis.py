@@ -126,3 +126,17 @@ async def get_analysis(
     if record is None or record.owner_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="分析记录不存在")
     return record
+
+
+@router.delete("/{analysis_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_analysis(
+    analysis_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    """删除指定分析记录（仅本人可删，越权返回 404）。"""
+    record = await db.get(Analysis, analysis_id)
+    if record is None or record.owner_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="分析记录不存在")
+    await db.delete(record)
+    await db.commit()

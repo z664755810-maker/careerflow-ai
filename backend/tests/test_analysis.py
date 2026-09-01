@@ -81,3 +81,58 @@ async def test_analysis_success(client, monkeypatch):
         "/api/analysis", headers={"Authorization": f"Bearer {token}"}
     )
     assert r.status_code == 200 and len(r.json()) == 1
+
+
+async def test_delete_analysis(client, monkeypatch):
+    token = await _register_login(client, "del@example.com")
+    rid, jid = await _make_resume_and_job(client, token)
+    fake_json = '{"match_score": 80, "match_summary": "ok", "interview_questions": ["q1"]}'
+    import app.api.analysis as analysis_mod
+
+    monkeypatch.setattr(analysis_mod, "ask_llm", lambda *a, **k: fake_json)
+
+    created = await client.post(
+        "/api/analysis",
+        json={"resume_id": rid, "job_id": jid},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    aid = created.json()["id"]
+    # 删除：应 204
+    r = await client.delete(
+        f"/api/analysis/{aid}", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert r.status_code == 204
+    # 删除后查不到
+    r = await client.get(
+        "/api/analysis", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert len(r.json()) == 0
+
+
+async def test_delete_analysis_isolation(client, monkeypatch):
+    t_a = await _register_login(client, "owner@example.com")
+    rid, jid = await _make_resume_and_job(client, t_a)
+    fake_json = '{"match_score": 70, "match_summary": "ok", "interview_questions": ["q1"]}'
+    import app.api.analysis as analysis_mod
+
+    monkeypatch.setattr(analysis_mod, "ask_llm", lambda *a, **k: fake_json)
+    aid = (
+        await client.post(
+            "/api/analysis",
+            json={"resume_id": rid, "job_id": jid},
+            headers={"Authorization": f"Bearer {t_a}"},
+        )
+    ).json()["id"]
+
+    # 用户 B 尝试删除 A 的记录：应 404（不暴露存在）
+    t_b = await _register_login(client, "other@example.com")
+    r = await client.delete(
+        f"/api/analysis/{aid}", headers={"Authorization": f"Bearer {t_b}"}
+    )
+    assert r.status_code == 404
+
+    # A 仍能查到（未被 B 删掉）
+    r = await client.get(
+        "/api/analysis", headers={"Authorization": f"Bearer {t_a}"}
+    )
+    assert len(r.json()) == 1

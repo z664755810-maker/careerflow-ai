@@ -9,6 +9,8 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const editingId = ref<number | null>(null)
 const form = reactive({ title: '', description: '' })
+const viewVisible = ref(false)
+const viewData = reactive({ title: '', content: '' })
 
 async function load() {
   loading.value = true
@@ -33,6 +35,12 @@ function openEdit(j: Job) {
   form.title = j.title
   form.description = j.description
   dialogVisible.value = true
+}
+
+function openView(j: Job) {
+  viewData.title = j.title
+  viewData.content = j.description
+  viewVisible.value = true
 }
 
 async function save() {
@@ -66,19 +74,23 @@ onMounted(load)
 </script>
 
 <template>
-  <div style="max-width: 900px; margin: 0 auto">
-    <div style="display: flex; justify-content: space-between; align-items: center">
-      <h2>职位描述 (JD)</h2>
+  <div style="max-width: 960px; margin: 0 auto">
+    <div class="cf-page-head">
+      <div>
+        <h1 class="cf-page-title">职位 JD</h1>
+        <div class="cf-page-sub">归档你心仪岗位的职位描述，作为 AI 匹配的基准</div>
+      </div>
       <el-button type="primary" @click="openCreate">+ 新建 JD</el-button>
     </div>
 
     <el-table :data="jobs" v-loading="loading" empty-text="还没有 JD，点右上角新建">
-      <el-table-column prop="title" label="岗位" />
+      <el-table-column prop="title" label="岗位" min-width="220" />
       <el-table-column label="更新时间" width="200">
         <template #default="{ row }">{{ new Date(row.updated_at).toLocaleString() }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="160">
+      <el-table-column label="操作" width="200" align="right">
         <template #default="{ row }">
+          <el-button size="small" link type="primary" @click="openView(row)">查看</el-button>
           <el-button size="small" @click="openEdit(row)">编辑</el-button>
           <el-button size="small" type="danger" @click="remove(row)">删除</el-button>
         </template>
@@ -103,6 +115,10 @@ onMounted(load)
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="save">保存</el-button>
       </template>
+    </el-dialog>
+
+    <el-dialog v-model="viewVisible" :title="viewData.title" width="640px">
+      <div class="cf-preview">{{ viewData.content || '（无内容）' }}</div>
     </el-dialog>
   </div>
 </template>

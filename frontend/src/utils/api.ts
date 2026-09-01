@@ -102,3 +102,6 @@ export async function listAnalyses(): Promise<Analysis[]> {
   const { data } = await api.get<Analysis[]>('/analysis')
   return data
 }
+export async function deleteAnalysis(id: number): Promise<void> {
+  await api.delete(`/analysis/${id}`)
+}
