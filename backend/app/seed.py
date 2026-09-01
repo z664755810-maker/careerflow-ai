@@ -35,6 +35,7 @@ DEMO_PASSWORD = os.getenv("DEMO_PASSWORD", "CareerFlow2026")
 SAMPLE_RESUMES: list[dict] = [
     {
         "title": "简历 · 数字化实施顾问（应届）",
+        "expected_salary": "9k-13k",
         "content": """教育背景
 天津理工大学中环信息学院 · 计算机科学与技术（本科） · 2027 届
 
@@ -59,6 +60,7 @@ SAMPLE_RESUMES: list[dict] = [
     },
     {
         "title": "简历 · 后端开发工程师（应届）",
+        "expected_salary": "12k-18k",
         "content": """教育背景
 XX 大学 · 软件工程（本科） · 2027 届
 
@@ -80,6 +82,7 @@ XX 大学 · 软件工程（本科） · 2027 届
     },
     {
         "title": "简历 · 前端开发工程师（应届）",
+        "expected_salary": "11k-16k",
         "content": """教育背景
 XX 大学 · 计算机科学与技术（本科） · 2027 届
 
@@ -101,6 +104,7 @@ XX 大学 · 计算机科学与技术（本科） · 2027 届
     },
     {
         "title": "简历 · 数据分析师（应届）",
+        "expected_salary": "10k-15k",
         "content": """教育背景
 XX 大学 · 统计学（本科） · 2027 届
 
@@ -127,6 +131,7 @@ XX 大学 · 统计学（本科） · 2027 届
 SAMPLE_JOBS: list[dict] = [
     {
         "title": "JD · 数字化实施顾问（校招）",
+        "salary_range": "8k-14k",
         "description": """岗位职责
 - 负责政企 / 制造行业数字化系统的现场实施、部署与培训
 - 对接客户需求，完成数据初始化、流程配置与上线支持
@@ -141,6 +146,7 @@ SAMPLE_JOBS: list[dict] = [
     },
     {
         "title": "JD · 后端开发工程师（校招）",
+        "salary_range": "13k-20k",
         "description": """岗位职责
 - 负责核心业务系统的后端服务设计与开发
 - 保障接口性能、稳定性与数据安全
@@ -154,6 +160,7 @@ SAMPLE_JOBS: list[dict] = [
     },
     {
         "title": "JD · 前端开发工程师（校招）",
+        "salary_range": "12k-18k",
         "description": """岗位职责
 - 负责 Web 端产品的前台页面开发与交互实现
 - 与后端协作完成接口对接，保障页面性能与兼容性
@@ -167,6 +174,7 @@ SAMPLE_JOBS: list[dict] = [
     },
     {
         "title": "JD · 数据分析师（校招）",
+        "salary_range": "10k-16k",
         "description": """岗位职责
 - 负责业务数据的提取、清洗与可视化
 - 输出经营分析报告，支持业务决策
@@ -187,10 +195,11 @@ SAMPLE_JOBS: list[dict] = [
 SAMPLE_ANALYSES: list[dict] = [
     {
         "resume_idx": 0, "job_idx": 0, "match_score": 86,
-        "skill_match": 90, "exp_match": 82, "education_match": 80, "salary_fit": 78,
+        "skill_match": 90, "exp_match": 82, "education_match": 80, "salary_fit": 80,
         "match_summary": (
-            "候选人的计算机背景与赛鸣科技实施实习高度契合岗位要求，已具备需求梳理、"
-            "接口联调与上线支持经验。建议补充项目管理与等保 / 合规知识，进一步提升现场交付能力。"
+            "技能匹配高：简历的 Python/SQL/JWT 与岗位实施工具链契合；经验匹配良好：赛鸣科技实施实习"
+            "覆盖需求梳理到上线；学历匹配达标：本科计算机对口；薪资契合较好：期望 9k-13k 落在岗位"
+            "8k-14k 区间内。建议补强项目管理与等保合规知识以进一步提升现场交付力。"
         ),
         "interview_questions": [
             "请描述一次你参与的需求梳理到上线的完整过程。",
@@ -199,11 +208,12 @@ SAMPLE_ANALYSES: list[dict] = [
         ],
     },
     {
-        "resume_idx": 1, "job_idx": 1, "match_score": 81,
-        "skill_match": 88, "exp_match": 84, "education_match": 76, "salary_fit": 72,
+        "resume_idx": 1, "job_idx": 1, "match_score": 83,
+        "skill_match": 88, "exp_match": 84, "education_match": 80, "salary_fit": 82,
         "match_summary": (
-            "具备扎实的后端基础与 Redis 优化实战，契合岗位对性能与稳定性的要求。"
-            "建议加强微服务与容器化生产经验，并补充高并发场景下的故障排查案例。"
+            "技能匹配高：Java/Python 与 FastAPI/Spring Boot 命中；经验匹配良好：Redis 优化实战契合"
+            "性能要求；学历达标：本科对口；薪资契合好：期望 12k-18k 与岗位 13k-20k 高度重叠。"
+            "建议加强微服务与容器化生产经验，并补充高并发故障排查案例。"
         ),
         "interview_questions": [
             "你用 Redis 做过哪些优化？带来了什么收益？",
@@ -213,10 +223,11 @@ SAMPLE_ANALYSES: list[dict] = [
     },
     {
         "resume_idx": 2, "job_idx": 2, "match_score": 79,
-        "skill_match": 82, "exp_match": 75, "education_match": 80, "salary_fit": 76,
+        "skill_match": 82, "exp_match": 75, "education_match": 80, "salary_fit": 80,
         "match_summary": (
-            "Vue3 + TypeScript + Element Plus 技术栈与岗位高度匹配，ECharts 可视化经验是亮点。"
-            "建议补充移动端适配与前端性能优化（打包体积、首屏）方面的实践。"
+            "技能匹配高：Vue3+TS+Element Plus 与岗位高度一致，ECharts 是亮点；经验匹配中等：缺移动端"
+            "适配实践；学历达标：本科对口；薪资契合良好：期望 11k-16k 落在 12k-18k 内。"
+            "建议补强首屏性能优化方面的实践。"
         ),
         "interview_questions": [
             "组件封装时你通常考虑哪些复用与隔离问题？",
@@ -225,11 +236,12 @@ SAMPLE_ANALYSES: list[dict] = [
         ],
     },
     {
-        "resume_idx": 3, "job_idx": 3, "match_score": 83,
-        "skill_match": 80, "exp_match": 78, "education_match": 85, "salary_fit": 82,
+        "resume_idx": 3, "job_idx": 3, "match_score": 85,
+        "skill_match": 80, "exp_match": 78, "education_match": 88, "salary_fit": 84,
         "match_summary": (
-            "统计学背景与 pandas/sklearn 实战符合岗位要求，流失预警项目体现建模能力。"
-            "建议增强业务理解，能将分析结论转化为可落地的运营动作。"
+            "技能匹配良好：pandas/sklearn 符合岗位；经验匹配良好：流失预警项目体现建模力；学历匹配高："
+            "统计本科对口；薪资契合好：期望 10k-15k 与 10k-16k 几乎一致。建议增强业务理解，"
+            "把分析转成可落地运营动作。"
         ),
         "interview_questions": [
             "请讲讲你做用户流失预警模型的思路与评价方式。",
@@ -239,10 +251,11 @@ SAMPLE_ANALYSES: list[dict] = [
     },
     {
         "resume_idx": 0, "job_idx": 1, "match_score": 52,
-        "skill_match": 55, "exp_match": 40, "education_match": 60, "salary_fit": 58,
+        "skill_match": 55, "exp_match": 40, "education_match": 60, "salary_fit": 60,
         "match_summary": (
-            "候选人的实施与需求经验有价值，但本岗位偏后端研发，候选人缺乏服务端框架与数据库深度的"
-            "系统实践，匹配度有限。若转向实施或业务分析岗会更合适。"
+            "技能匹配偏低：偏实施与需求，缺后端框架深度；经验匹配低：无服务端系统实践；学历达标："
+            "本科对口；薪资契合一般：期望 9k-13k 仅与岗位 13k-20k 上限窄幅重叠。整体与纯后端研发岗"
+            "不匹配，转向实施或业务分析更合适。"
         ),
         "interview_questions": [
             "你如何看待从实施转向纯后端研发的差异？",
@@ -280,7 +293,12 @@ async def _auto_seed() -> None:
             # 简历
             resume_ids: list[int] = []
             for r in SAMPLE_RESUMES:
-                obj = Resume(owner_id=user.id, title=r["title"], content=r["content"])
+                obj = Resume(
+                    owner_id=user.id,
+                    title=r["title"],
+                    content=r["content"],
+                    expected_salary=r.get("expected_salary", "") or "",
+                )
                 db.add(obj)
                 await db.flush()
                 resume_ids.append(obj.id)
@@ -288,7 +306,12 @@ async def _auto_seed() -> None:
             # JD
             job_ids: list[int] = []
             for j in SAMPLE_JOBS:
-                obj = Job(owner_id=user.id, title=j["title"], description=j["description"])
+                obj = Job(
+                    owner_id=user.id,
+                    title=j["title"],
+                    description=j["description"],
+                    salary_range=j.get("salary_range", "") or "",
+                )
                 db.add(obj)
                 await db.flush()
                 job_ids.append(obj.id)
@@ -368,18 +391,53 @@ async def _auto_seed() -> None:
                     {
                         "role": "candidate",
                         "content": (
-                            "我是计算机专业应届生，在赛鸣科技实习期间参与政企数字化系统的需求梳理与"
-                            "测试用例编写，并协助完成模块接口联调与上线支持。"
+                            "在赛鸣科技实习时，我参与过一个政企数字化系统的实施：先随导师梳理客户部门的"
+                            "业务流程并输出需求清单，再协助开发完成模块接口联调、用 SQL 核对数据，最后"
+                            "跟着做上线支持与用户培训。"
                         ),
                         "score": None,
                     },
                     {
                         "role": "interviewer",
                         "content": (
-                            "【评价 82 分】回答贴合岗位、结构清晰；建议补充一个具体项目难点与你的解决思路。"
-                            "\n\n下一题：请描述一次你从需求梳理到上线的完整过程。"
+                            "【评价 82 分】回答完整、贴合实施岗位，体现了需求→联调→上线的闭环意识；"
+                            "建议补充一个你独立推动或解决的具体难点。\n\n下一题：面对客户现场提出的流程变更，"
+                            "你会如何评估与响应？"
                         ),
                         "score": 82.0,
+                    },
+                    {
+                        "role": "candidate",
+                        "content": (
+                            "我会先记录变更点并判断影响范围，区分是与现有流程冲突还是可配置实现；"
+                            "能本地配置的先给方案，涉及二次开发的拉上研发评估工期，再回客户确认，"
+                            "避免现场口头承诺。"
+                        ),
+                        "score": None,
+                    },
+                    {
+                        "role": "interviewer",
+                        "content": (
+                            "【评价 80 分】处理思路稳妥，懂得划分边界与拉通研发；可再强调变更的风险登记"
+                            "与回滚预案。\n\n下一题：你如何理解实施顾问在政企项目中的角色？"
+                        ),
+                        "score": 80.0,
+                    },
+                    {
+                        "role": "candidate",
+                        "content": (
+                            "我认为实施顾问是客户与研发之间的桥梁：既要懂业务把需求翻译准确，又要懂系统"
+                            "把能力讲清楚，还要管进度与预期，保证项目平稳交付。"
+                        ),
+                        "score": None,
+                    },
+                    {
+                        "role": "interviewer",
+                        "content": (
+                            "【评价 84 分】定位准确，抓住了桥梁与预期管理的核心。整体表现稳健，"
+                            "建议后续补强项目管理方法论。（面试已结束，感谢参与）"
+                        ),
+                        "score": 84.0,
                     },
                 ]
                 db.add(
@@ -388,8 +446,8 @@ async def _auto_seed() -> None:
                         analysis_id=first_analysis.id,
                         analysis_title=snapshot,
                         messages=json.dumps(sample_messages, ensure_ascii=False),
-                        current_score=82.0,
-                        status="in_progress",
+                        current_score=82.0,  # 三轮均分 (82+80+84)/3
+                        status="completed",
                     )
                 )
 

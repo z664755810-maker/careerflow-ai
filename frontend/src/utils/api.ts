@@ -53,16 +53,26 @@ export async function listResumes(): Promise<Resume[]> {
   const { data } = await api.get<Resume[]>('/resumes')
   return data
 }
-export async function createResume(title: string, content: string): Promise<Resume> {
-  const { data } = await api.post<Resume>('/resumes', { title, content })
+export async function createResume(
+  title: string,
+  content: string,
+  expected_salary = '',
+): Promise<Resume> {
+  const { data } = await api.post<Resume>('/resumes', { title, content, expected_salary })
   return data
 }
 export async function updateResume(
   id: number,
   title: string,
   content: string,
+  expected_salary?: string,
 ): Promise<Resume> {
-  const { data } = await api.put<Resume>(`/resumes/${id}`, { title, content })
+  const payload: { title: string; content: string; expected_salary?: string } = {
+    title,
+    content,
+  }
+  if (expected_salary !== undefined) payload.expected_salary = expected_salary
+  const { data } = await api.put<Resume>(`/resumes/${id}`, payload)
   return data
 }
 export async function deleteResume(id: number): Promise<void> {
@@ -74,16 +84,26 @@ export async function listJobs(): Promise<Job[]> {
   const { data } = await api.get<Job[]>('/jobs')
   return data
 }
-export async function createJob(title: string, description: string): Promise<Job> {
-  const { data } = await api.post<Job>('/jobs', { title, description })
+export async function createJob(
+  title: string,
+  description: string,
+  salary_range = '',
+): Promise<Job> {
+  const { data } = await api.post<Job>('/jobs', { title, description, salary_range })
   return data
 }
 export async function updateJob(
   id: number,
   title: string,
   description: string,
+  salary_range?: string,
 ): Promise<Job> {
-  const { data } = await api.put<Job>(`/jobs/${id}`, { title, description })
+  const payload: { title: string; description: string; salary_range?: string } = {
+    title,
+    description,
+  }
+  if (salary_range !== undefined) payload.salary_range = salary_range
+  const { data } = await api.put<Job>(`/jobs/${id}`, payload)
   return data
 }
 export async function deleteJob(id: number): Promise<void> {

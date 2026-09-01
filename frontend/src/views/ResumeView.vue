@@ -8,9 +8,9 @@ const resumes = ref<Resume[]>([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const editingId = ref<number | null>(null)
-const form = reactive({ title: '', content: '' })
+const form = reactive({ title: '', content: '', expected_salary: '' })
 const viewVisible = ref(false)
-const viewData = reactive({ title: '', content: '' })
+const viewData = reactive({ title: '', content: '', expected_salary: '' })
 const resumeFileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
 
@@ -29,6 +29,7 @@ function openCreate() {
   editingId.value = null
   form.title = ''
   form.content = ''
+  form.expected_salary = ''
   dialogVisible.value = true
 }
 
@@ -36,22 +37,24 @@ function openEdit(r: Resume) {
   editingId.value = r.id
   form.title = r.title
   form.content = r.content
+  form.expected_salary = r.expected_salary ?? ''
   dialogVisible.value = true
 }
 
 function openView(r: Resume) {
   viewData.title = r.title
   viewData.content = r.content
+  viewData.expected_salary = r.expected_salary ?? ''
   viewVisible.value = true
 }
 
 async function save() {
   try {
     if (editingId.value) {
-      await api.updateResume(editingId.value, form.title, form.content)
+      await api.updateResume(editingId.value, form.title, form.content, form.expected_salary)
       ElMessage.success('已更新')
     } else {
-      await api.createResume(form.title, form.content)
+      await api.createResume(form.title, form.content, form.expected_salary)
       ElMessage.success('已创建')
     }
     dialogVisible.value = false
@@ -129,9 +132,12 @@ async function onResumeFile(e: Event) {
       :title="editingId ? '编辑简历' : '新建简历'"
       width="600px"
     >
-      <el-form label-width="60px">
+      <el-form label-width="72px">
         <el-form-item label="标题">
           <el-input v-model="form.title" placeholder="如：校招后端简历 v1" />
+        </el-form-item>
+        <el-form-item label="期望薪资">
+          <el-input v-model="form.expected_salary" placeholder="如：10k-15k / 面议" />
         </el-form-item>
         <el-form-item label="内容">
           <el-input
@@ -149,6 +155,9 @@ async function onResumeFile(e: Event) {
     </el-dialog>
 
     <el-dialog v-model="viewVisible" :title="viewData.title" width="640px">
+      <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px">
+        期望薪资：{{ viewData.expected_salary || '（未填写）' }}
+      </div>
       <div class="cf-preview">{{ viewData.content || '（无内容）' }}</div>
     </el-dialog>
   </div>

@@ -37,8 +37,9 @@
 ### 3. 分析深度多维化（技能/经验/学历/薪资四维）✅ 已实现
 - **做什么**：改造 LLM prompt，要求同时返回 `skill_match / exp_match / education_match / salary_fit` 四个 0-100 子分（含综合分）；后端解析时做 0-100 钳制、去单位、缺失置 `None`；`Analysis` 模型新增 4 个可空列。
 - **前端**：手写零依赖 SVG `RadarChart.vue`（不引入图表库，避免打包体积进一步膨胀），在「本次分析结果」卡片与「分析详情」弹窗展示四维雷达 + 分项进度条；历史表格新增「四维」列（彩色 chips）。
-- **兼容**：本地旧 `careerflow.db`（缺新列的旧 `analyses` 表）首次启动会由 `init_db()` 的 inspector 防御逻辑自动 `ALTER TABLE` 补列，无需手动删库；并补了一条 Alembic 迁移。
-- **种子**：5 条示例分析均带四维子分，无需 LLM key 即可看雷达。
+- **薪资维度数据驱动（已强化）**：简历新增 `expected_salary`、JD 新增 `salary_range`，prompt 明确要求 LLM 依据二者重叠度给 `salary_fit`，并在 `match_summary` 中**逐条点名**四个维度为什么给这个分——不再是「无明确信息时合理估算」的黑盒。详情弹窗与结果卡片会直接展示评分依据（期望薪资 vs 岗位薪资范围）。
+- **兼容**：本地旧 `careerflow.db`（缺新列的旧 `analyses` 表）首次启动会由 `init_db()` 的 inspector 防御逻辑自动 `ALTER TABLE` 补列，无需手动删库；并补了 Alembic 迁移。
+- **种子**：5 条示例分析均带四维子分与维度化摘要；示例简历/JD 已填真实薪资区间，开箱即可看完整逻辑。
 - **价值**：从"一个数字"升级为"可解释的诊断报告"，面试讲解时更显专业。
 
 ---

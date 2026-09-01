@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import * as api from '../utils/api'
 import type { Analysis, InterviewMessage, InterviewSession } from '../types'
+
+const route = useRoute()
 
 const analyses = ref<Analysis[]>([])
 const sessions = ref<InterviewSession[]>([])
@@ -147,7 +150,33 @@ async function remove(s: InterviewSession) {
   }
 }
 
-onMounted(loadAll)
+onMounted(async () => {
+  await loadAll()
+  // 从「AI 分析」详情一键进入：自动开启对应该分析的面试（已存在则直接打开）
+  const q = route.query.analysis_id
+  if (q != null && String(q).trim() !== '') {
+    const aid = Number(q)
+    if (aid) {
+      const existing = sessions.value.find((s) => s.analysis_id === aid)
+      if (existing) {
+        selectSession(existing)
+      } else if (analyses.value.some((a) => a.id === aid)) {
+        starting.value = true
+        try {
+          const s = await api.startInterview(aid)
+          await loadAll()
+          selectSession(s)
+        } catch (e: any) {
+          ElMessage.error(e.response?.data?.detail || '开启面试失败')
+        } finally {
+          starting.value = false
+        }
+      } else {
+        ElMessage.warning('未找到对应分析记录，请重新从分析页进入')
+      }
+    }
+  }
+})
 </script>
 
 <template>

@@ -49,6 +49,8 @@ class Resume(Base):
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # 期望薪资（自由文本，如 "10k-15k" / "面议"），用于 AI 薪资契合度评估，可空
+    expected_salary: Mapped[str | None] = mapped_column(String(255), nullable=True, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
@@ -66,6 +68,8 @@ class Job(Base):
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)  # 公司/岗位
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # 薪资范围（自由文本，如 "12k-18k"），用于 AI 薪资契合度评估，可空
+    salary_range: Mapped[str | None] = mapped_column(String(255), nullable=True, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow

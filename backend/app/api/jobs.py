@@ -27,7 +27,12 @@ async def create_job(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> Job:
-    job = Job(owner_id=user.id, title=payload.title, description=payload.description)
+    job = Job(
+        owner_id=user.id,
+        title=payload.title,
+        description=payload.description,
+        salary_range=payload.salary_range or "",
+    )
     db.add(job)
     await db.commit()
     await db.refresh(job)
@@ -65,6 +70,8 @@ async def update_job(
         job.title = payload.title
     if payload.description is not None:
         job.description = payload.description
+    if payload.salary_range is not None:
+        job.salary_range = payload.salary_range
     await db.commit()
     await db.refresh(job)
     return job

@@ -71,6 +71,7 @@ async def init_db() -> None:
     # 轻量迁移：为已存在的旧表补加新增列（create_all 不会给旧表加列）。
     # 用 inspector 检查，缺列才 ALTER ADD COLUMN，幂等且跨 SQLite/Postgres 通用。
     await _ensure_analysis_dimension_columns()
+    await _ensure_salary_columns()
 
 
 async def _ensure_analysis_dimension_columns() -> None:
@@ -91,3 +92,21 @@ async def _ensure_analysis_dimension_columns() -> None:
         for col, col_type in expected.items():
             if col not in existing:
                 await conn.execute(text(f"ALTER TABLE analyses ADD COLUMN {col} {col_type}"))
+
+
+async def _ensure_salary_columns() -> None:
+    """为 resumes / jobs 表补齐薪资列（若缺失），保证旧库升级不丢数据。"""
+    salary_cols = {
+        "resumes": {"expected_salary": "VARCHAR(255)"},
+        "jobs": {"salary_range": "VARCHAR(255)"},
+    }
+    async with engine.begin() as conn:
+        for table, cols in salary_cols.items():
+            existing = await conn.run_sync(
+                lambda sync_conn, t=table: {c["name"] for c in inspect(sync_conn).get_columns(t)}
+            )
+            for col, col_type in cols.items():
+                if col not in existing:
+                    await conn.execute(
+                        text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type} DEFAULT ''")
+                    )

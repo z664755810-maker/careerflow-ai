@@ -9,6 +9,7 @@ export interface Resume {
   owner_id: number
   title: string
   content: string
+  expected_salary: string
   created_at: string
   updated_at: string
 }
@@ -18,6 +19,7 @@ export interface Job {
   owner_id: number
   title: string
   description: string
+  salary_range: string
   created_at: string
   updated_at: string
 }

@@ -17,18 +17,19 @@ router = APIRouter(prefix="/analysis", tags=["analysis"])
 
 _SYSTEM_PROMPT = (
     "你是一位资深的校招 HR 与技术面试官，擅长评估候选人与岗位的匹配度。"
-    "请基于给定的简历与职位描述，输出严格合法的 JSON（不要包含任何解释文字或 markdown 代码块），"
-    "结构如下：\n"
+    "请基于给定的简历、职位描述，以及候选人的「期望薪资」与岗位的「薪资范围」，"
+    "输出严格合法的 JSON（不要包含任何解释文字或 markdown 代码块），结构如下：\n"
     '{\n'
-    '  "match_score": 0到100的整数，表示综合匹配度,\n'
-    '  "skill_match": 0到100的整数，技能匹配度（岗位要求技能与简历技能的契合）,\n'
-    '  "exp_match": 0到100的整数，经验匹配度（相关项目/实习经历与岗位的契合）,\n'
-    '  "education_match": 0到100的整数，学历匹配度（学历/专业与岗位要求的契合）,\n'
-    '  "salary_fit": 0到100的整数，薪资契合度（岗位薪资区间与候选人期望的契合，无明确信息时给合理估算）,\n'
-    '  "match_summary": "3-5句中文分析，指出优势与差距",\n'
+    '  "match_score": 0到100的整数，综合匹配度，必须等于四维子分的加权平均（技能0.35 + 经验0.30 + 学历0.20 + 薪资0.15），四舍五入取整,\n'
+    '  "skill_match": 0到100的整数，技能匹配度（岗位要求技能与简历技能的契合，重点看是否命中核心技术栈）,\n'
+    '  "exp_match": 0到100的整数，经验匹配度（相关项目/实习经历与岗位的契合，看是否做过类似业务或量级）,\n'
+    '  "education_match": 0到100的整数，学历匹配度（学历层次/专业方向与岗位要求的契合；岗位要求本科则本科≈80，硕士≈90，大专≈60）,\n'
+    '  "salary_fit": 0到100的整数，薪资契合度（候选人期望薪资与岗位薪资范围的重叠度：高度重叠≥85，部分重叠60-84，期望明显高于上限或明显低于下限时≤45）,\n'
+    '  "match_summary": "3-5句中文分析，必须逐条点名四个维度——技能/经验/学历/薪资各自为什么给这个分，并附一句最该补强的建议",\n'
     '  "interview_questions": ["3-5个针对该候选人与岗位的模拟面试问题，具体且可考察能力"]\n'
     "}\n"
-    "只输出 JSON。"
+    "只输出 JSON。若未提供期望薪资或薪资范围，salary_fit 按中性取值70，"
+    "并在 match_summary 的薪资部分明确写「薪资信息未提供，按中性估算」。"
 )
 
 # 四个分维度字段名（与模型/库一致），用于解析与落库
@@ -106,8 +107,12 @@ async def analyze(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="JD 不存在")
 
     user_prompt = (
-        f"【简历】\n标题：{resume.title}\n内容：\n{resume.content}\n\n"
-        f"【职位描述】\n标题：{job.title}\n内容：\n{job.description}\n"
+        f"【简历】\n标题：{resume.title}\n"
+        f"期望薪资：{resume.expected_salary or '（未填写）'}\n"
+        f"内容：\n{resume.content}\n\n"
+        f"【职位描述】\n标题：{job.title}\n"
+        f"薪资范围：{job.salary_range or '（未填写）'}\n"
+        f"内容：\n{job.description}\n"
     )
 
     raw = ask_llm(_SYSTEM_PROMPT, user_prompt, max_tokens=1200, temperature=0.4)

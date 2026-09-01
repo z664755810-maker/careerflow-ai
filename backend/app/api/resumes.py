@@ -28,7 +28,12 @@ async def create_resume(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> Resume:
-    resume = Resume(owner_id=user.id, title=payload.title, content=payload.content)
+    resume = Resume(
+        owner_id=user.id,
+        title=payload.title,
+        content=payload.content,
+        expected_salary=payload.expected_salary or "",
+    )
     db.add(resume)
     await db.commit()
     await db.refresh(resume)
@@ -66,6 +71,8 @@ async def update_resume(
         resume.title = payload.title
     if payload.content is not None:
         resume.content = payload.content
+    if payload.expected_salary is not None:
+        resume.expected_salary = payload.expected_salary
     await db.commit()
     await db.refresh(resume)
     return resume

@@ -41,11 +41,13 @@ class Token(BaseModel):
 class ResumeCreate(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     content: str = Field(default="", max_length=50000)
+    expected_salary: str = Field(default="", max_length=255)
 
 
 class ResumeUpdate(BaseModel):
     title: str | None = Field(default=None, max_length=255)
     content: str | None = Field(default=None, max_length=50000)
+    expected_salary: str | None = Field(default=None, max_length=255)
 
 
 class ResumeOut(BaseModel):
@@ -55,6 +57,7 @@ class ResumeOut(BaseModel):
     owner_id: int
     title: str
     content: str
+    expected_salary: str = ""
     created_at: datetime
     updated_at: datetime
 
@@ -63,11 +66,13 @@ class ResumeOut(BaseModel):
 class JobCreate(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     description: str = Field(default="", max_length=50000)
+    salary_range: str = Field(default="", max_length=255)
 
 
 class JobUpdate(BaseModel):
     title: str | None = Field(default=None, max_length=255)
     description: str | None = Field(default=None, max_length=50000)
+    salary_range: str | None = Field(default=None, max_length=255)
 
 
 class JobOut(BaseModel):
@@ -77,6 +82,7 @@ class JobOut(BaseModel):
     owner_id: int
     title: str
     description: str
+    salary_range: str = ""
     created_at: datetime
     updated_at: datetime
 

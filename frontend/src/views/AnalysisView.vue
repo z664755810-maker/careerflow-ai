@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import * as api from '../utils/api'
 import RadarChart from '../components/RadarChart.vue'
 import type { Analysis, Job, Resume } from '../types'
 
+const router = useRouter()
 const resumes = ref<Resume[]>([])
 const jobs = ref<Job[]>([])
 const analyses = ref<Analysis[]>([])
@@ -19,6 +21,27 @@ const resumeMap = computed<Record<number, string>>(() =>
 const jobMap = computed<Record<number, string>>(() =>
   Object.fromEntries(jobs.value.map((j) => [j.id, j.title])),
 )
+// 薪资依据映射：让雷达/详情里能直接看到评分依据（期望薪资 vs 岗位薪资范围）
+const resumeSalaryMap = computed<Record<number, string>>(() =>
+  Object.fromEntries(resumes.value.map((r) => [r.id, r.expected_salary || ''])),
+)
+const jobSalaryMap = computed<Record<number, string>>(() =>
+  Object.fromEntries(jobs.value.map((j) => [j.id, j.salary_range || ''])),
+)
+
+function salaryContext(a: Analysis | null | undefined) {
+  const rid = a?.resume_id ?? null
+  const jid = a?.job_id ?? null
+  const exp = rid != null ? resumeSalaryMap.value[rid] || '未填写' : '未填写'
+  const ran = jid != null ? jobSalaryMap.value[jid] || '未填写' : '未填写'
+  return { exp, ran }
+}
+
+// 从分析详情一键进入模拟面试（带 analysis_id，面试页会自动开聊）
+function goInterview(a: Analysis) {
+  if (!a.id) return
+  router.push({ path: '/interview', query: { analysis_id: String(a.id) } })
+}
 
 const scored = computed(() => analyses.value.map((a) => a.match_score).filter((s): s is number => s != null))
 const avgScore = computed(() => (scored.value.length ? Math.round(scored.value.reduce((a, b) => a + b, 0) / scored.value.length) : 0))
@@ -177,6 +200,12 @@ onMounted(loadAll)
     <el-card v-if="result" shadow="never" style="margin-bottom: 18px">
       <div class="cf-page-head" style="margin-bottom: 8px">
         <h3 style="margin: 0">本次分析结果</h3>
+        <el-button size="small" type="primary" @click="goInterview(result)">
+          🎤 用本次分析开始模拟面试
+        </el-button>
+      </div>
+      <div v-if="salaryContext(result)" style="font-size: 12px; color: #64748b; margin-bottom: 10px">
+        评分依据 · 期望薪资：{{ salaryContext(result).exp }} ｜ 岗位薪资范围：{{ salaryContext(result).ran }}
       </div>
       <div style="display: flex; gap: 28px; flex-wrap: wrap; align-items: center">
         <el-progress
@@ -271,6 +300,12 @@ onMounted(loadAll)
               匹配度 {{ detailRow.match_score ?? '-' }}
             </div>
           </div>
+          <el-button size="small" type="primary" @click="goInterview(detailRow); detailVisible = false">
+            🎤 用本次分析开始模拟面试
+          </el-button>
+        </div>
+        <div v-if="salaryContext(detailRow)" style="font-size: 12px; color: #64748b; margin: 6px 0 2px">
+          评分依据 · 期望薪资：{{ salaryContext(detailRow).exp }} ｜ 岗位薪资范围：{{ salaryContext(detailRow).ran }}
         </div>
         <div style="font-weight: 600; margin: 10px 0 6px">分析建议</div>
         <el-alert :closable="false" type="success">{{ detailRow.match_summary }}</el-alert>
