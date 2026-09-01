@@ -6,7 +6,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -74,6 +74,10 @@ if _HAS_FRONTEND:
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str) -> FileResponse:
+        # API 路径不应被 SPA 兜底拦截：返回 404 JSON 而非 HTML，
+        # 避免客户端（或带斜杠/拼写错误的请求）误收到首页页面。
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not Found")
         # 静态资源（如 /assets/index-xxx.js）若存在则直接返回文件
         candidate = os.path.join(STATIC_DIR, full_path)
         if full_path and os.path.isfile(candidate):
