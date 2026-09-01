@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import analysis, applications, auth, jobs, resumes
+from app.api import analysis, applications, auth, interview, jobs, resumes
 from app.config import settings
 from app.database import init_db
 
@@ -63,6 +63,7 @@ app.include_router(resumes.router, prefix=settings.api_prefix)
 app.include_router(jobs.router, prefix=settings.api_prefix)
 app.include_router(analysis.router, prefix=settings.api_prefix)
 app.include_router(applications.router, prefix=settings.api_prefix)
+app.include_router(interview.router, prefix=settings.api_prefix)
 
 
 @app.get("/health", tags=["meta"])

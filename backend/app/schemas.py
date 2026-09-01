@@ -143,3 +143,26 @@ class ApplicationOut(BaseModel):
     notes: str
     created_at: datetime
     updated_at: datetime
+
+
+# ---------- 模拟面试会话 ----------
+class InterviewStart(BaseModel):
+    analysis_id: int = Field(gt=0)
+
+
+class InterviewAnswer(BaseModel):
+    answer: str = Field(min_length=1, max_length=5000)
+
+
+class InterviewSessionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    owner_id: int
+    analysis_id: int | None
+    analysis_title: str
+    messages: str  # JSON 字符串
+    current_score: float | None
+    status: str
+    created_at: datetime
+    updated_at: datetime

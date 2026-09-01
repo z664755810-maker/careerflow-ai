@@ -15,7 +15,7 @@ async def test_application_crud_and_isolation(client):
     # 准备两个用户，各自简历/JD
     async with AsyncSessionLocal() as db:
         u1 = await _make_user(db, "apps1@test.com", "password123")
-        u2 = await _make_user(db, "apps2@test.com", "password123")
+        await _make_user(db, "apps2@test.com", "password123")
         r1 = Resume(owner_id=u1.id, title="简历A", content="x")
         j1 = Job(owner_id=u1.id, title="JD A", description="y")
         db.add_all([r1, j1])
@@ -80,7 +80,7 @@ async def test_application_crud_and_isolation(client):
 @pytest.mark.asyncio
 async def test_application_rejects_missing_resume(client):
     async with AsyncSessionLocal() as db:
-        u = await _make_user(db, "apps3@test.com", "password123")
+        await _make_user(db, "apps3@test.com", "password123")
         await db.commit()
     token = await _login("apps3@test.com", "password123")
     transport = ASGITransport(app=app)

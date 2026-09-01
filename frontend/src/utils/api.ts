@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Analysis, Application, ApplicationStatus, Job, Resume, User } from '../types'
+import type { Analysis, Application, ApplicationStatus, InterviewSession, Job, Resume, User } from '../types'
 
 // API 基地址：默认走同源 /api（开发由 Vite 代理，生产由 Vercel 重写）
 const base = import.meta.env.VITE_API_BASE || '/api'
@@ -157,4 +157,21 @@ export async function listAnalyses(): Promise<Analysis[]> {
 }
 export async function deleteAnalysis(id: number): Promise<void> {
   await api.delete(`/analysis/${id}`)
+}
+
+// ---------- 模拟面试 ----------
+export async function listInterviews(): Promise<InterviewSession[]> {
+  const { data } = await api.get<InterviewSession[]>('/interview')
+  return data
+}
+export async function startInterview(analysis_id: number): Promise<InterviewSession> {
+  const { data } = await api.post<InterviewSession>('/interview', { analysis_id })
+  return data
+}
+export async function answerInterview(id: number, answer: string): Promise<InterviewSession> {
+  const { data } = await api.post<InterviewSession>(`/interview/${id}/answer`, { answer })
+  return data
+}
+export async function deleteInterview(id: number): Promise<void> {
+  await api.delete(`/interview/${id}`)
 }

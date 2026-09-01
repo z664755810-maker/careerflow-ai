@@ -21,7 +21,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, select
 
 from app.database import AsyncSessionLocal
-from app.models import Analysis, Application, Job, Resume, User
+from app.models import Analysis, Application, InterviewSession, Job, Resume, User
 from app.security import hash_password
 
 logger = logging.getLogger("careerflow.seed")
@@ -333,9 +333,69 @@ async def _auto_seed() -> None:
                     )
                 )
 
+            # 示例模拟面试：基于第一条分析，造一条进行中的会话（含一轮作答与面试官反馈），
+            # 让「模拟面试」页开箱即有数据，且无需 LLM key。
+            # 注意：上面 analyses 仅 add 未 commit，且会话 autoflush=False，
+            # 必须先 flush 让 pending 的 Analysis 落库，否则下面按 owner 查询会拿到空结果。
+            await db.flush()
+            first_analysis = (
+                await db.scalars(
+                    select(Analysis).where(Analysis.owner_id == user.id).order_by(Analysis.id)
+                )
+            ).first()
+            if first_analysis is not None and first_analysis.interview_questions:
+                try:
+                    qlist = json.loads(first_analysis.interview_questions)
+                except json.JSONDecodeError:
+                    qlist = []
+                q0 = qlist[0] if qlist else "请做一个简短的自我介绍。"
+                resume_title = job_title = ""
+                if first_analysis.resume_id:
+                    r = await db.get(Resume, first_analysis.resume_id)
+                    if r:
+                        resume_title = r.title
+                if first_analysis.job_id:
+                    j = await db.get(Job, first_analysis.job_id)
+                    if j:
+                        job_title = j.title
+                snapshot = (
+                    f"{resume_title} × {job_title}"
+                    if (resume_title or job_title)
+                    else f"分析 #{first_analysis.id}"
+                )
+                sample_messages = [
+                    {"role": "interviewer", "content": q0, "score": None},
+                    {
+                        "role": "candidate",
+                        "content": (
+                            "我是计算机专业应届生，在赛鸣科技实习期间参与政企数字化系统的需求梳理与"
+                            "测试用例编写，并协助完成模块接口联调与上线支持。"
+                        ),
+                        "score": None,
+                    },
+                    {
+                        "role": "interviewer",
+                        "content": (
+                            "【评价 82 分】回答贴合岗位、结构清晰；建议补充一个具体项目难点与你的解决思路。"
+                            "\n\n下一题：请描述一次你从需求梳理到上线的完整过程。"
+                        ),
+                        "score": 82.0,
+                    },
+                ]
+                db.add(
+                    InterviewSession(
+                        owner_id=user.id,
+                        analysis_id=first_analysis.id,
+                        analysis_title=snapshot,
+                        messages=json.dumps(sample_messages, ensure_ascii=False),
+                        current_score=82.0,
+                        status="in_progress",
+                    )
+                )
+
             await db.commit()
             logger.info(
-                "已灌入演示数据（演示账号 %s：%d 简历 / %d JD / %d 分析 / %d 投递）",
+                "已灌入演示数据（演示账号 %s：%d 简历 / %d JD / %d 分析 / %d 投递 / 1 面试）",
                 DEMO_EMAIL,
                 len(SAMPLE_RESUMES),
                 len(SAMPLE_JOBS),

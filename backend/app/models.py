@@ -138,3 +138,40 @@ class Application(Base):
     )
 
     owner: Mapped["User"] = relationship(back_populates="applications")
+
+
+class InterviewSession(Base):
+    """模拟面试会话：把一次 AI 面试的对话过程持久化，便于回看与延续。
+
+    设计取舍：
+    - 后端按「轮」无状态评估（每次回答调用 LLM 评价+出下一题），前端持有对话历史；
+      会话本身只负责持久化 messages（JSON 字符串）与累计均分，简单且易扩展。
+    """
+
+    __tablename__ = "interview_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    analysis_id: Mapped[int | None] = mapped_column(
+        ForeignKey("analyses.id", ondelete="SET NULL"), nullable=True
+    )
+    # 快照标题（简历×JD 或「分析#id」），即使源分析被删也能看懂这次面了什么
+    analysis_title: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    # 对话历史：JSON 字符串，元素 {role: interviewer|candidate, content, score?}
+    messages: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
+    current_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="in_progress", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
+    )
+
+    owner: Mapped["User"] = relationship(back_populates="interviews")
+
+
+# User 关系补充（与上面各子表保持一致）
+User.interviews = relationship(  # type: ignore[attr-defined]
+    "InterviewSession", back_populates="owner", cascade="all, delete-orphan"
+)

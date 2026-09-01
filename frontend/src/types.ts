@@ -37,6 +37,25 @@ export interface Analysis {
   created_at: string
 }
 
+// 模拟面试消息（messages 是 JSON 字符串，前端解析为下列结构）
+export interface InterviewMessage {
+  role: 'interviewer' | 'candidate'
+  content: string
+  score: number | null
+}
+
+export interface InterviewSession {
+  id: number
+  owner_id: number
+  analysis_id: number | null
+  analysis_title: string
+  messages: string // JSON 字符串
+  current_score: number | null
+  status: string // in_progress / completed
+  created_at: string
+  updated_at: string
+}
+
 // 投递状态：wishlist 想投递 / applied 已投递 / interview 面试中 / offer 已拿offer / rejected 已拒绝
 export type ApplicationStatus =
   | 'wishlist'

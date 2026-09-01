@@ -39,12 +39,13 @@ def _make_pdf_bytes(text: str) -> bytes:
 
 async def test_upload_txt_and_md(client):
     """测试 .txt / .md 解析、不支持类型拒绝、空文件拒绝。"""
-    from app.database import AsyncSessionLocal
-    from app.main import app
     from httpx import ASGITransport, AsyncClient
 
+    from app.database import AsyncSessionLocal
+    from app.main import app
+
     async with AsyncSessionLocal() as db:
-        u = await _make_user(db, "up1@test.com", "password123")
+        await _make_user(db, "up1@test.com", "password123")
         await db.commit()
     token = await _login("up1@test.com", "password123")
     headers = {"Authorization": f"Bearer {token}"}
@@ -88,12 +89,13 @@ async def test_upload_txt_and_md(client):
 
 
 async def test_upload_pdf(client):
-    from app.database import AsyncSessionLocal
-    from app.main import app
     from httpx import ASGITransport, AsyncClient
 
+    from app.database import AsyncSessionLocal
+    from app.main import app
+
     async with AsyncSessionLocal() as db:
-        u = await _make_user(db, "up2@test.com", "password123")
+        await _make_user(db, "up2@test.com", "password123")
         await db.commit()
     token = await _login("up2@test.com", "password123")
     headers = {"Authorization": f"Bearer {token}"}

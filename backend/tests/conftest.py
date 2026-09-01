@@ -22,7 +22,7 @@ import pytest_asyncio  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
-from app.database import AsyncSessionLocal, Base, engine, init_db  # noqa: E402
+from app.database import AsyncSessionLocal, engine, init_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import User  # noqa: E402
 from app.security import hash_password  # noqa: E402

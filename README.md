@@ -47,7 +47,7 @@ Project-2/
 │   │   ├── dependencies.py  # 当前用户解析
 │   │   ├── llm.py           # LLM 封装（key 仅走环境变量）
 │   │   ├── seed.py          # 自动 seed（应对临时文件系统丢库）
-│   │   └── api/             # auth / resumes / jobs / analysis 路由
+│   │   └── api/             # auth / resumes / jobs / analysis / interview 路由
 │   ├── migrations/          # Alembic 迁移
 │   ├── tests/               # pytest（接口 + 鉴权 + 隔离）
 │   ├── start.py             # Render 启动入口（读 $PORT）
@@ -59,7 +59,7 @@ Project-2/
 │   │   ├── api/             # axios 封装（自动带 JWT）
 │   │   ├── stores/          # Pinia 状态
 │   │   ├── router/          # 路由 + 鉴权守卫
-│   │   └── views/          # 登录 / 简历 / JD / AI 分析
+│   │   └── views/          # 登录 / 简历 / JD / AI 分析 / 模拟面试
 │   ├── Dockerfile           # 多阶段：Vite 构建 → Nginx
 │   ├── nginx.conf
 │   └── package.json
@@ -140,7 +140,7 @@ pytest -q
 ```
 
 覆盖：注册/登录/当前用户、错误路径（重复注册 409、密码错误 401、未鉴权 401）、
-简历/JD 的 CRUD 与**用户数据隔离**、AI 分析接口的 LLM 降级（503）与正常解析落库。
+简历/JD 的 CRUD 与**用户数据隔离**、AI 分析接口的 LLM 降级（503）与正常解析落库、模拟面试多轮会话的鉴权与越权隔离。
 默认跑在 SQLite；CI 中通过 `DATABASE_URL` 指向 Postgres 服务容器验证可移植性。
 
 Lint：`ruff check app`
@@ -215,7 +215,7 @@ Render 控制台 → **New** → **Blueprint** → 选仓库，自动按 `render
 
 浏览器真实走一遍：① 根路径应看到前端 UI（非 Swagger）；② 用演示账号登录；
 ③「简历 / JD」页应各列出 4 条示例数据，可演示新建 / 编辑 / 删除；
-④ 进入 AI 分析页，历史表格默认已有 5 条示例分析（含高/中/低匹配度），选简历+JD 点「开始分析」可生成实时结果（需 `LLM_API_KEY`）。
+④ 进入 AI 分析页，历史表格默认已有 5 条示例分析（含高/中/低匹配度），选简历+JD 点「开始分析」可生成实时结果（需 `LLM_API_KEY`）；`/interview` 模拟面试页默认已有 1 条示例会话，可选分析开启新面试（作答需 `LLM_API_KEY`）。
 若根路径只看到 Swagger，说明 `dist` 未正确拷入 `/app/static`。
 
 ---
@@ -247,5 +247,6 @@ Render 控制台 → **New** → **Blueprint** → 选仓库，自动按 `render
 - [x] 简历 / JD 文件上传解析（`.txt/.md/.pdf/.docx`；`pypdf`+`python-docx` 抽取文本，扩展名白名单 + 3MB 上限 + 空内容拒绝）
 - [x] 投递管理看板（Application Tracker：状态机 `wishlist→applied→interview→offer→rejected` 闭环 + 看板 UI + 统计卡 + 5 条示例投递）
 - [x] AI 分析多维化（技能/经验/学历/薪资四维子分 + 零依赖 SVG 雷达图，种子数据即带子分）
+- [x] 模拟面试对话（多轮评估 + 累计均分 + 会话持久化 + 越权隔离 404 + 示例会话 seed，前端聊天式 UI）
 - [ ] 部署上线拿可点链接（需你提供 Render 账号，按上文部署步骤操作；我无 Render 凭证，无法代点控制台）
 - [ ] 演示截图（部署后浏览器实测补充）

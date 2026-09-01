@@ -16,6 +16,7 @@ const navs = [
   { path: '/jobs', label: '职位 JD', icon: '💼' },
   { path: '/analysis', label: 'AI 分析', icon: '🤖' },
   { path: '/applications', label: '投递管理', icon: '📮' },
+  { path: '/interview', label: '模拟面试', icon: '🎤' },
 ]
 
 function logout() {
