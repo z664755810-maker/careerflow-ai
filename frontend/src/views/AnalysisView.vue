@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import * as api from '../utils/api'
+import RadarChart from '../components/RadarChart.vue'
 import type { Analysis, Job, Resume } from '../types'
 
 const resumes = ref<Resume[]>([])
@@ -99,6 +100,26 @@ function scoreColor(score: number | null): string {
   return '#f56c6c'
 }
 
+// 四维匹配子分：统一定义显示名称与展示顺序
+const DIM_LABELS: Record<string, string> = {
+  skill_match: '技能',
+  exp_match: '经验',
+  education_match: '学历',
+  salary_fit: '薪资',
+}
+const DIM_KEYS = ['skill_match', 'exp_match', 'education_match', 'salary_fit'] as const
+
+function dimsOf(a: Analysis | null | undefined): { name: string; value: number | null }[] {
+  if (!a) return []
+  return DIM_KEYS.map((k) => ({ name: DIM_LABELS[k], value: (a[k] as number | null) ?? null }))
+}
+function hasDims(a: Analysis | null | undefined): boolean {
+  return dimsOf(a).some((d) => d.value != null)
+}
+function dimColor(v: number | null): string {
+  return scoreColor(v)
+}
+
 onMounted(loadAll)
 </script>
 
@@ -174,6 +195,21 @@ onMounted(loadAll)
           <li v-for="(q, i) in questions" :key="i" style="margin-bottom: 8px; line-height: 1.6">{{ q }}</li>
         </ol>
       </div>
+      <div v-if="hasDims(result)" style="margin-top: 16px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap">
+        <RadarChart :dimensions="dimsOf(result)" :size="200" />
+        <div style="flex: 1; min-width: 220px">
+          <div style="font-weight: 600; margin-bottom: 8px">四维匹配</div>
+          <div
+            v-for="d in dimsOf(result)"
+            :key="d.name"
+            style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px"
+          >
+            <span style="width: 36px; color: #64748b">{{ d.name }}</span>
+            <span style="flex: 1"><el-progress :percentage="d.value ?? 0" :color="dimColor(d.value)" :show-text="false" /></span>
+            <span style="width: 34px; text-align: right; font-weight: 600">{{ d.value ?? '-' }}</span>
+          </div>
+        </div>
+      </div>
     </el-card>
 
     <el-card shadow="never">
@@ -190,6 +226,19 @@ onMounted(loadAll)
         <el-table-column label="匹配分" width="100">
           <template #default="{ row }">
             <el-tag :type="scoreTag(row.match_score)">{{ row.match_score ?? '-' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="四维" min-width="170">
+          <template #default="{ row }">
+            <span v-if="hasDims(row)" style="display: flex; gap: 4px; flex-wrap: wrap">
+              <span
+                v-for="d in dimsOf(row)"
+                :key="d.name"
+                class="dim-chip"
+                :style="{ borderColor: dimColor(d.value), color: dimColor(d.value) }"
+              >{{ d.name }} {{ d.value }}</span>
+            </span>
+            <span v-else style="color: #94a3b8">—</span>
           </template>
         </el-table-column>
         <el-table-column label="时间" width="170">
@@ -229,7 +278,36 @@ onMounted(loadAll)
         <ol style="margin: 0; padding-left: 20px">
           <li v-for="(q, i) in detailQuestions" :key="i" style="margin-bottom: 8px; line-height: 1.6">{{ q }}</li>
         </ol>
+        <div v-if="hasDims(detailRow)" style="margin-top: 16px">
+          <div style="font-weight: 600; margin-bottom: 8px">四维匹配雷达</div>
+          <div style="display: flex; gap: 18px; align-items: center; flex-wrap: wrap">
+            <RadarChart :dimensions="dimsOf(detailRow)" :size="200" />
+            <div style="flex: 1; min-width: 220px">
+              <div
+                v-for="d in dimsOf(detailRow)"
+                :key="d.name"
+                style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px"
+              >
+                <span style="width: 36px; color: #64748b">{{ d.name }}</span>
+                <span style="flex: 1"><el-progress :percentage="d.value ?? 0" :color="dimColor(d.value)" :show-text="false" /></span>
+                <span style="width: 34px; text-align: right; font-weight: 600">{{ d.value ?? '-' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </template>
     </el-dialog>
   </div>
 </template>
+
+<style scoped>
+.dim-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border: 1px solid;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+</style>

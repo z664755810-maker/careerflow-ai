@@ -53,7 +53,9 @@ async def test_analysis_success(client, monkeypatch):
     rid, jid = await _make_resume_and_job(client, token)
 
     fake_json = (
-        '{"match_score": 88, "match_summary": "匹配度较高", '
+        '{"match_score": 88, "skill_match": 90, "exp_match": 88, '
+        '"education_match": 85, "salary_fit": 80, '
+        '"match_summary": "匹配度较高", '
         '"interview_questions": ["讲讲 FastAPI 依赖注入", "如何做 JWT 鉴权"]}'
     )
     # 直接替换 analysis 模块内已绑定的 ask_llm 引用
@@ -70,6 +72,11 @@ async def test_analysis_success(client, monkeypatch):
     body = r.json()
     assert body["match_score"] == 88
     assert body["match_summary"] == "匹配度较高"
+    # 四维子分应随记录返回
+    assert body["skill_match"] == 90
+    assert body["exp_match"] == 88
+    assert body["education_match"] == 85
+    assert body["salary_fit"] == 80
     # interview_questions 以 JSON 字符串存储，这里验证可解析
     import json
 
@@ -81,6 +88,22 @@ async def test_analysis_success(client, monkeypatch):
         "/api/analysis", headers={"Authorization": f"Bearer {token}"}
     )
     assert r.status_code == 200 and len(r.json()) == 1
+
+
+async def test_parse_llm_output_dimensions(client):
+    """解析容错：分维度子分做 0-100 钳制、去单位、null/缺失置 None。"""
+    import app.api.analysis as analysis_mod
+
+    parsed = analysis_mod._parse_llm_output(
+        '{"match_score": 120, "skill_match": 130, "exp_match": "85分", '
+        '"education_match": null, "salary_fit": 70, '
+        '"match_summary": "ok", "interview_questions": ["q1"]}'
+    )
+    assert parsed["match_score"] == 100.0  # 综合分钳制到 100
+    assert parsed["skill_match"] == 100.0  # 子分同样钳制
+    assert parsed["exp_match"] == 85.0  # 去"分"单位
+    assert parsed["education_match"] is None  # null -> None
+    assert parsed["salary_fit"] == 70.0
 
 
 async def test_delete_analysis(client, monkeypatch):

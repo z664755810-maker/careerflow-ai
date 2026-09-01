@@ -30,6 +30,10 @@ export interface Analysis {
   match_score: number | null
   match_summary: string | null
   interview_questions: string | null // JSON 字符串
+  skill_match: number | null
+  exp_match: number | null
+  education_match: number | null
+  salary_fit: number | null
   created_at: string
 }
 

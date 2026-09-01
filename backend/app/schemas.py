@@ -97,6 +97,10 @@ class AnalysisOut(BaseModel):
     match_score: float | None
     match_summary: str | None
     interview_questions: str | None  # JSON 字符串
+    skill_match: float | None
+    exp_match: float | None
+    education_match: float | None
+    salary_fit: float | None
     created_at: datetime
 
 

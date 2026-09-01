@@ -187,6 +187,7 @@ SAMPLE_JOBS: list[dict] = [
 SAMPLE_ANALYSES: list[dict] = [
     {
         "resume_idx": 0, "job_idx": 0, "match_score": 86,
+        "skill_match": 90, "exp_match": 82, "education_match": 80, "salary_fit": 78,
         "match_summary": (
             "候选人的计算机背景与赛鸣科技实施实习高度契合岗位要求，已具备需求梳理、"
             "接口联调与上线支持经验。建议补充项目管理与等保 / 合规知识，进一步提升现场交付能力。"
@@ -199,6 +200,7 @@ SAMPLE_ANALYSES: list[dict] = [
     },
     {
         "resume_idx": 1, "job_idx": 1, "match_score": 81,
+        "skill_match": 88, "exp_match": 84, "education_match": 76, "salary_fit": 72,
         "match_summary": (
             "具备扎实的后端基础与 Redis 优化实战，契合岗位对性能与稳定性的要求。"
             "建议加强微服务与容器化生产经验，并补充高并发场景下的故障排查案例。"
@@ -211,6 +213,7 @@ SAMPLE_ANALYSES: list[dict] = [
     },
     {
         "resume_idx": 2, "job_idx": 2, "match_score": 79,
+        "skill_match": 82, "exp_match": 75, "education_match": 80, "salary_fit": 76,
         "match_summary": (
             "Vue3 + TypeScript + Element Plus 技术栈与岗位高度匹配，ECharts 可视化经验是亮点。"
             "建议补充移动端适配与前端性能优化（打包体积、首屏）方面的实践。"
@@ -223,6 +226,7 @@ SAMPLE_ANALYSES: list[dict] = [
     },
     {
         "resume_idx": 3, "job_idx": 3, "match_score": 83,
+        "skill_match": 80, "exp_match": 78, "education_match": 85, "salary_fit": 82,
         "match_summary": (
             "统计学背景与 pandas/sklearn 实战符合岗位要求，流失预警项目体现建模能力。"
             "建议增强业务理解，能将分析结论转化为可落地的运营动作。"
@@ -235,6 +239,7 @@ SAMPLE_ANALYSES: list[dict] = [
     },
     {
         "resume_idx": 0, "job_idx": 1, "match_score": 52,
+        "skill_match": 55, "exp_match": 40, "education_match": 60, "salary_fit": 58,
         "match_summary": (
             "候选人的实施与需求经验有价值，但本岗位偏后端研发，候选人缺乏服务端框架与数据库深度的"
             "系统实践，匹配度有限。若转向实施或业务分析岗会更合适。"
@@ -300,6 +305,10 @@ async def _auto_seed() -> None:
                         interview_questions=json.dumps(
                             a["interview_questions"], ensure_ascii=False
                         ),
+                        skill_match=a["skill_match"],
+                        exp_match=a["exp_match"],
+                        education_match=a["education_match"],
+                        salary_fit=a["salary_fit"],
                     )
                 )
 

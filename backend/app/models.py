@@ -93,6 +93,11 @@ class Analysis(Base):
     match_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     # 面试问题列表以 JSON 字符串存储，保持跨库可移植
     interview_questions: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # 多维匹配子分（0-100），用于雷达图；由 LLM 返回，可空以兼容旧记录
+    skill_match: Mapped[float | None] = mapped_column(Float, nullable=True)
+    exp_match: Mapped[float | None] = mapped_column(Float, nullable=True)
+    education_match: Mapped[float | None] = mapped_column(Float, nullable=True)
+    salary_fit: Mapped[float | None] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     owner: Mapped["User"] = relationship(back_populates="analyses")

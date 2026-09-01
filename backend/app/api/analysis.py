@@ -21,11 +21,32 @@ _SYSTEM_PROMPT = (
     "结构如下：\n"
     '{\n'
     '  "match_score": 0到100的整数，表示综合匹配度,\n'
+    '  "skill_match": 0到100的整数，技能匹配度（岗位要求技能与简历技能的契合）,\n'
+    '  "exp_match": 0到100的整数，经验匹配度（相关项目/实习经历与岗位的契合）,\n'
+    '  "education_match": 0到100的整数，学历匹配度（学历/专业与岗位要求的契合）,\n'
+    '  "salary_fit": 0到100的整数，薪资契合度（岗位薪资区间与候选人期望的契合，无明确信息时给合理估算）,\n'
     '  "match_summary": "3-5句中文分析，指出优势与差距",\n'
     '  "interview_questions": ["3-5个针对该候选人与岗位的模拟面试问题，具体且可考察能力"]\n'
     "}\n"
     "只输出 JSON。"
 )
+
+# 四个分维度字段名（与模型/库一致），用于解析与落库
+_DIMENSION_KEYS = ("skill_match", "exp_match", "education_match", "salary_fit")
+
+
+def _to_score(v) -> float | None:
+    """把 LLM 返回的分值统一成 0-100 的 float；非法/缺失返回 None。"""
+    if v is None:
+        return None
+    if isinstance(v, str):
+        digits = "".join(ch for ch in v if ch.isdigit() or ch == ".")
+        v = float(digits) if digits else None
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, (int, float)):
+        return max(0.0, min(100.0, float(v)))
+    return None
 
 
 def _parse_llm_output(raw: str) -> dict:
@@ -42,25 +63,32 @@ def _parse_llm_output(raw: str) -> dict:
     try:
         data = json.loads(text)
     except json.JSONDecodeError:
-        return {"match_score": None, "match_summary": raw, "interview_questions": []}
+        return {
+            "match_score": None,
+            "match_summary": raw,
+            "interview_questions": [],
+            "skill_match": None,
+            "exp_match": None,
+            "education_match": None,
+            "salary_fit": None,
+        }
 
-    score = data.get("match_score")
-    if isinstance(score, str):
-        digits = "".join(ch for ch in score if ch.isdigit() or ch == ".")
-        score = float(digits) if digits else None
-    elif isinstance(score, (int, float)):
-        score = float(score)
+    score = _to_score(data.get("match_score"))
 
     questions = data.get("interview_questions", [])
     if not isinstance(questions, list):
         questions = [str(questions)]
 
     summary = data.get("match_summary")
-    return {
+    result = {
         "match_score": score,
         "match_summary": summary if isinstance(summary, str) else None,
         "interview_questions": [str(q) for q in questions],
     }
+    # 四个分维度子分
+    for key in _DIMENSION_KEYS:
+        result[key] = _to_score(data.get(key))
+    return result
 
 
 @router.post("", response_model=AnalysisOut, status_code=status.HTTP_201_CREATED)
@@ -97,6 +125,10 @@ async def analyze(
         match_score=parsed["match_score"],
         match_summary=parsed["match_summary"],
         interview_questions=json.dumps(parsed["interview_questions"], ensure_ascii=False),
+        skill_match=parsed["skill_match"],
+        exp_match=parsed["exp_match"],
+        education_match=parsed["education_match"],
+        salary_fit=parsed["salary_fit"],
     )
     db.add(record)
     await db.commit()
