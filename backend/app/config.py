@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     # CORS：生产把前端 Vercel 域名加进来，多个用逗号分隔
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
+    # ----- 自动 seed -----
+    # Render 等 PaaS 临时文件系统重启会清库；开启后数据库为空时自动灌入演示数据。
+    # 测试/本地不希望被灌数据时可设为 0。
+    auto_seed: bool = True
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

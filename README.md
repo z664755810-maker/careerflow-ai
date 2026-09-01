@@ -11,12 +11,12 @@
 |----|------|
 | 前端 | Vue 3 + Vite + TypeScript + Pinia + Vue Router + Element Plus |
 | 后端 | FastAPI + SQLAlchemy 2.0（async）+ Pydantic v2 |
-| 数据库 | PostgreSQL（生产） / SQLite（本地开发·测试兜底，零依赖可跑） |
+| 数据库 | PostgreSQL（docker-compose 路径） / SQLite（本地开发·测试·Render Free 兜底，零依赖可跑） |
 | 迁移 | Alembic |
 | 鉴权 | JWT（python-jose） + passlib（pbkdf2_sha256 哈希） |
 | AI | OpenAI 兼容 LLM（默认智谱 `glm-4-flash` 免费，可切 DeepSeek） |
 | 工程化 | Docker + docker-compose + GitHub Actions（pytest + ruff） |
-| 部署 | Render（后端） + Vercel（前端） |
+| 部署 | Render（Docker 单服务，前后端同源托管） |
 
 ---
 
@@ -38,7 +38,7 @@ flowchart LR
 Project-2/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py          # 入口：生命周期 / CORS / 路由装配
+│   │   ├── main.py          # 入口：生命周期 / CORS / 路由装配 / 同源静态托管
 │   │   ├── config.py        # pydantic-settings（环境变量）
 │   │   ├── database.py      # 异步引擎 / 会话 / Base
 │   │   ├── models.py        # ORM 模型（跨库可移植）
@@ -46,10 +46,12 @@ Project-2/
 │   │   ├── security.py      # 密码哈希 + JWT
 │   │   ├── dependencies.py  # 当前用户解析
 │   │   ├── llm.py           # LLM 封装（key 仅走环境变量）
+│   │   ├── seed.py          # 自动 seed（应对临时文件系统丢库）
 │   │   └── api/             # auth / resumes / jobs / analysis 路由
 │   ├── migrations/          # Alembic 迁移
 │   ├── tests/               # pytest（接口 + 鉴权 + 隔离）
-│   ├── Dockerfile
+│   ├── start.py             # Render 启动入口（读 $PORT）
+│   ├── Dockerfile           # 仅 docker-compose / Postgres 路径用
 │   ├── requirements.txt
 │   └── pytest.ini
 ├── frontend/
@@ -62,6 +64,9 @@ Project-2/
 │   ├── nginx.conf
 │   └── package.json
 ├── docker-compose.yml       # 一条命令起全栈（前端+后端+Postgres）
+├── Dockerfile               # Render 部署镜像（多阶段，前后端同源托管）
+├── .dockerignore
+├── render.yaml              # 可选：Render Blueprint 一键部署
 └── .github/workflows/ci.yml # push 自动跑 pytest + ruff + 前端构建
 ```
 
@@ -167,20 +172,50 @@ docker compose up --build
 
 ---
 
-## 部署
+## 部署（Render · Docker 单服务，前后端同源托管）
 
-### 后端 → Render
+> 借鉴自同构 RAG 项目的 Render 部署剧本，适配 CareerFlow：
+> 多阶段 Docker 把前端 `dist` 拷进后端 `/app/static` 同源托管，免 CORS；
+> `start.py` 直接读 `$PORT`；自动 seed 应对 Render 临时文件系统重启丢库。
+> （RAG 项目的 `EMBEDDING_PROVIDER` 等 Chroma 专属配置不适用，本项目的 LLM 配置用 `LLM_*` 承载。）
 
-1. 新建 Web Service，连仓库，Root Directory 选 `backend`。
-2. Build Command：`pip install -r requirements.txt`
-3. Start Command：`alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-4. 环境变量：`DATABASE_URL`（Render Postgres 内网地址）、`SECRET_KEY`（随机长串）、`LLM_API_KEY`、`CORS_ORIGINS`（填前端 Vercel 域名）。
+### 方式 A：控制台手动（最直观）
 
-### 前端 → Vercel
+1. 打开 https://dashboard.render.com → **New** → **Web Service** → 选本 GitHub 仓库。
+2. 配置：
+   - **Runtime**：`Docker`（自动识别仓库根 `Dockerfile`）
+   - **Branch**：`main`
+   - **Region**：离用户近（如 Singapore）
+   - **Plan**：`Free`（15 分钟无流量会休眠，首次访问冷启动约 30–60s）
+3. 左侧 **Environment** 添加变量（详见下表）。
+4. **Create Web Service** → 首次构建约 4–8 分钟 → 访问 `https://<service-name>.onrender.com`。
 
-1. 导入 `frontend` 目录，Framework 选 Vite。
-2. Build：`npm run build`，Output：`dist`。
-3. 若前后端不同域，在 Vercel 环境变量设 `VITE_API_BASE=https://你的render域名`，并在后端 `CORS_ORIGINS` 加入 Vercel 域名。
+### 方式 B：render.yaml 一键（可选）
+
+Render 控制台 → **New** → **Blueprint** → 选仓库，自动按 `render.yaml` 创建（`SECRET_KEY` 自动生成、`LLM_API_KEY` 留空待你填）。
+
+### 必须配置的环境变量
+
+| KEY | VALUE | 说明 |
+|---|---|---|
+| `PORT` | （不用设，Render 自动注入） | `start.py` 读取 |
+| `SECRET_KEY` | 随机长串（`python -c "import secrets;print(secrets.token_urlsafe(32))"`） | JWT 签名；render.yaml 可 `generateValue` |
+| `LLM_API_KEY` | 你的 LLM Key | 推荐 dashscope（通义千问）规避智谱免费档 429 |
+| `LLM_BASE_URL` | `https://dashscope.aliyuncs.com/compatible-mode/v1` | OpenAI 兼容；智谱则 `https://open.bigmodel.cn/api/paas/v4` |
+| `LLM_MODEL` | `qwen-plus` | 智谱则 `glm-4-flash` |
+| `AUTO_SEED` | `1` | 数据库为空时自动灌演示数据（演示账号+样例简历/JD） |
+| `DEMO_PASSWORD` | `CareerFlow2026` | 演示账号密码（可改） |
+| `DATABASE_URL` | （不设，用默认 SQLite） | Free 实例用 SQLite；临时文件系统重启会清库，由 seed 兜底 |
+
+> **安全红线**：真实 Key 只配在 Render 控制台 Environment，**绝不要写进仓库文件**（含 docs）。
+> 本地 `.env` 已被 `.gitignore` 忽略；一旦在聊天/提交里暴露过，去对应平台「重新生成」新 Key。
+> 演示账号 `demo@careerflow.app / CareerFlow2026` 为公开演示用，仅供作品集体验。
+
+### 验证（部署后必做）
+
+浏览器真实走一遍：① 根路径应看到前端 UI（非 Swagger）；② 用演示账号登录；
+③ 进入 AI 分析页选示例简历+JD → 出匹配度评分+建议+模拟面试题。
+若根路径只看到 Swagger，说明 `dist` 未正确拷入 `/app/static`。
 
 ---
 
@@ -207,5 +242,6 @@ docker compose up --build
 - [x] Docker + docker-compose 全栈
 - [x] GitHub Actions CI（pytest + ruff + 前端构建）
 - [x] pytest 覆盖核心接口与鉴权
-- [ ] 部署上线拿可点链接（需你提供 Render/Vercel 账号，按上文部署步骤操作）
-- [ ] 演示截图（本地运行后补充）
+- [x] Render 部署就绪（多阶段 Docker 同源托管 + start.py 读 $PORT + 自动 seed 应对临时文件系统）
+- [ ] 部署上线拿可点链接（需你提供 Render 账号，按上文部署步骤操作；我无 Render 凭证，无法代点控制台）
+- [ ] 演示截图（部署后浏览器实测补充）

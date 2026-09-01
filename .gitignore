@@ -29,3 +29,6 @@ dist-ssr/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# ===== Docker 构建产物（前端 dist 被拷入后端 static，不进仓库）=====
+backend/static/

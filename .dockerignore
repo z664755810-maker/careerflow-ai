@@ -1,0 +1,18 @@
+# 不把本地大文件/敏感文件打进镜像
+backend/.venv
+backend/__pycache__
+backend/*.pyc
+backend/.env
+backend/*.db
+backend/.pytest_cache
+backend/tests
+backend/migrations
+
+frontend/node_modules
+frontend/dist
+
+.git
+.github
+.idea
+.vscode
+*.md

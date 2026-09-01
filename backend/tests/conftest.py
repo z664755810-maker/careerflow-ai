@@ -15,6 +15,8 @@ import os
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./test_careerflow.db")
 os.environ["SECRET_KEY"] = "test-secret-key"
 os.environ["LLM_API_KEY"] = ""
+# 测试不希望被自动 seed 灌入演示数据
+os.environ["AUTO_SEED"] = "0"
 
 import pytest_asyncio  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402

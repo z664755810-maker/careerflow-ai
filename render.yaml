@@ -1,0 +1,24 @@
+# Render 一键部署配置（可选，等效于在控制台手动操作）
+# 用法：Render 控制台 New → Blueprint → 选仓库 → 自动按此文件创建服务
+services:
+  - type: web
+    name: careerflow
+    runtime: docker
+    plan: free
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      # 随机生成强密钥，不进仓库
+      - key: SECRET_KEY
+        generateValue: true
+      # 留空由你在控制台手动填（不会出现在仓库/日志里）
+      - key: LLM_API_KEY
+        sync: false
+      # 推荐 dashscope（通义千问）规避智谱免费档 429；可改回 zhipu
+      - key: LLM_BASE_URL
+        value: https://dashscope.aliyuncs.com/compatible-mode/v1
+      - key: LLM_MODEL
+        value: qwen-plus
+      # 临时文件系统重启会清库，自动 seed 演示数据兜底
+      - key: AUTO_SEED
+        value: "1"

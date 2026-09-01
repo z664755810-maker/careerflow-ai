@@ -9,6 +9,8 @@ const router = useRouter()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+// 演示账号提示：作品集演示用，方便 recruiters 一键体验
+const showDemo = ref(true)
 
 async function submit() {
   loading.value = true
@@ -42,6 +44,15 @@ async function submit() {
       <div style="margin-top: 12px; text-align: center">
         <router-link to="/register">还没有账号？去注册</router-link>
       </div>
+      <el-alert
+        v-if="showDemo"
+        type="info"
+        :closable="false"
+        show-icon
+        style="margin-top: 14px"
+        title="演示账号（体验用）"
+        description="demo@careerflow.app / CareerFlow2026"
+      />
     </el-card>
   </div>
 </template>
