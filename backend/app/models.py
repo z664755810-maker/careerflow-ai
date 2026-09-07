@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -82,6 +82,16 @@ class Analysis(Base):
     """AI 分析结果：简历×JD 的匹配度与模拟面试问题。"""
 
     __tablename__ = "analyses"
+
+    # 去重键：同一用户同一「简历×JD」组合只允许一条分析结果。
+    # 含 owner_id 是为了避免不同用户使用相同自增 id 时被唯一约束误伤；
+    # resume_id/job_id 为可空（兼容旧记录），但正常分析都会写入，NULL 在唯一索引中视为互异不冲突。
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "resume_id", "job_id",
+            name="uq_analysis_owner_resume_job",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     owner_id: Mapped[int] = mapped_column(

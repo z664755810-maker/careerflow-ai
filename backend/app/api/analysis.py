@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -95,16 +95,46 @@ def _parse_llm_output(raw: str) -> dict:
 @router.post("", response_model=AnalysisOut, status_code=status.HTTP_201_CREATED)
 async def analyze(
     payload: AnalysisRequest,
+    response: Response,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> Analysis:
-    """对指定简历与 JD 做 AI 匹配分析，结果落库。"""
+    """对指定简历与 JD 做 AI 匹配分析，结果落库。
+
+    去重策略：同一用户同一「简历×JD」组合只允许一条记录。
+    - 非 force 且已存在：直接返回缓存记录（HTTP 200），不再调 LLM、不再新建。
+    - force 或不存在：调 LLM 生成新结果；force 时先删除旧记录再新建，保证唯一约束不冲突。
+    """
     resume = await db.get(Resume, payload.resume_id)
     job = await db.get(Job, payload.job_id)
     if resume is None or resume.owner_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="简历不存在")
     if job is None or job.owner_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="JD 不存在")
+
+    # 查重：同一 (owner, resume, job) 是否已分析过（取最新一条）
+    existing_list = list(
+        await db.scalars(
+            select(Analysis)
+            .where(
+                Analysis.owner_id == user.id,
+                Analysis.resume_id == payload.resume_id,
+                Analysis.job_id == payload.job_id,
+            )
+            .order_by(Analysis.created_at.desc())
+        )
+    )
+
+    if existing_list and not payload.force:
+        # 命中缓存：直接返回已有结果，省一次 LLM 调用
+        response.status_code = status.HTTP_200_OK
+        return existing_list[0]
+
+    if existing_list and payload.force:
+        # 强制重算：删除该组合下的全部旧记录，腾出唯一索引位置后再新建
+        for old in existing_list:
+            await db.delete(old)
+        await db.flush()
 
     user_prompt = (
         f"【简历】\n标题：{resume.title}\n"

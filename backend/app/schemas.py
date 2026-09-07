@@ -112,6 +112,9 @@ class JobOut(BaseModel):
 class AnalysisRequest(BaseModel):
     resume_id: int
     job_id: int
+    # 强制重算：为 true 时忽略缓存、删除旧记录并重新调用 LLM 生成新结果；
+    # 为 false（默认）时，若同一「简历×JD」已分析过则直接返回缓存，避免重复花销。
+    force: bool = False
 
 
 class AnalysisOut(BaseModel):

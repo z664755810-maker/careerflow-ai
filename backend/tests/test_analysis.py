@@ -162,3 +162,72 @@ async def test_delete_analysis_isolation(client, monkeypatch):
         "/api/analysis", headers={"Authorization": f"Bearer {t_a}"}
     )
     assert len(r.json()) == 1
+
+
+async def test_analysis_dedup_returns_cache(client, monkeypatch):
+    """缓存去重：同一「简历×JD」第二次请求应命中缓存(200)且不再新增记录。"""
+    import app.api.analysis as analysis_mod
+
+    token = await _register_login(client, "dedup@example.com")
+    rid, jid = await _make_resume_and_job(client, token)
+    calls = {"n": 0}
+
+    def _fake(*a, **k):
+        calls["n"] += 1
+        return (
+            '{"match_score": 88, "skill_match": 90, "exp_match": 80, '
+            '"education_match": 85, "salary_fit": 82, '
+            '"match_summary": "ok", "interview_questions": ["q1"]}'
+        )
+
+    monkeypatch.setattr(analysis_mod, "ask_llm", _fake)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    r1 = await client.post("/api/analysis", json={"resume_id": rid, "job_id": jid}, headers=headers)
+    assert r1.status_code == 201, r1.text
+    id1 = r1.json()["id"]
+
+    # 同一组合再次分析：应命中缓存返回 200，且 LLM 不再被调用（calls 仍为 1）
+    r2 = await client.post("/api/analysis", json={"resume_id": rid, "job_id": jid}, headers=headers)
+    assert r2.status_code == 200, r2.text
+    assert r2.json()["id"] == id1  # 返回的是同一条缓存记录
+    assert calls["n"] == 1, "命中缓存后不应再次调用 LLM"
+
+    # 历史列表仍只有 1 条（去重生效）
+    lst = await client.get("/api/analysis", headers=headers)
+    assert len(lst.json()) == 1
+
+
+async def test_analysis_force_recalc(client, monkeypatch):
+    """强制重算：force=true 应删除旧记录并生成新结果，历史仍只有 1 条。"""
+    import app.api.analysis as analysis_mod
+
+    token = await _register_login(client, "force@example.com")
+    rid, jid = await _make_resume_and_job(client, token)
+    seq = [
+        '{"match_score": 70, "match_summary": "old", "interview_questions": ["q1"]}',
+        '{"match_score": 95, "match_summary": "new", "interview_questions": ["q1"]}',
+    ]
+    it = iter(seq)
+
+    def _fake(*a, **k):
+        return next(it)
+
+    monkeypatch.setattr(analysis_mod, "ask_llm", _fake)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    r1 = await client.post("/api/analysis", json={"resume_id": rid, "job_id": jid}, headers=headers)
+    assert r1.status_code == 201 and r1.json()["match_score"] == 70
+
+    r2 = await client.post(
+        "/api/analysis",
+        json={"resume_id": rid, "job_id": jid, "force": True},
+        headers=headers,
+    )
+    assert r2.status_code == 201, r2.text
+    assert r2.json()["match_score"] == 95  # 新生成的结果
+
+    # 强制重算后，旧记录被替换，历史仍只有 1 条
+    lst = await client.get("/api/analysis", headers=headers)
+    assert len(lst.json()) == 1
+    assert lst.json()[0]["match_score"] == 95
