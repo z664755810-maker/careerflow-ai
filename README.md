@@ -206,6 +206,7 @@ Render 控制台 → **New** → **Blueprint** → 选仓库，自动按 `render
 | `AUTO_SEED` | `1` | 数据库为空时自动灌演示数据（演示账号 + 4 份示例简历 + 4 份示例 JD + 历史分析记录） |
 | `DEMO_PASSWORD` | `CareerFlow2026` | 演示账号密码（可改） |
 | `DATABASE_URL` | （不设，用默认 SQLite） | Free 实例用 SQLite；临时文件系统重启会清库，由 seed 兜底 |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_FROM` | 空（开发态） | 注册验证码邮件。三项（`HOST/USER/PASSWORD`）齐备才视为已配置；否则进入**开发态**：不真发信，验证码由接口返回前端直接展示（适合演示站点零成本）。兼容 Resend / Gmail / 阿里云 DirectMail 标准 SMTP |
 
 > **安全红线**：真实 Key 只配在 Render 控制台 Environment，**绝不要写进仓库文件**（含 docs）。
 > 本地 `.env` 已被 `.gitignore` 忽略；一旦在聊天/提交里暴露过，去对应平台「重新生成」新 Key。
@@ -235,7 +236,7 @@ Render 控制台 → **New** → **Blueprint** → 选仓库，自动按 `render
 ## 已实现 vs 计划
 
 - [x] FastAPI + SQLAlchemy 2.0 async + 跨库可移植模型
-- [x] JWT 注册/登录/用户隔离
+- [x] JWT 注册/登录/用户隔离（两步注册 + 邮箱验证码；开发态未配 SMTP 时验证码前端直显，零成本可演示）
 - [x] 简历 / JD 完整 CRUD
 - [x] LLM 集成（Agent 式匹配分析 + 模拟面试问题，优雅降级）
 - [x] Alembic 迁移（SQLite/Postgres 同构验证）

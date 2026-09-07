@@ -42,7 +42,7 @@ async def _clean_tables():
     yield
     async with AsyncSessionLocal() as session:
         # 先删子表再删父表，避免外键约束冲突
-        for table in ("analyses", "applications", "resumes", "jobs", "users"):
+        for table in ("verification_codes", "analyses", "applications", "resumes", "jobs", "users"):
             await session.execute(text(f"DELETE FROM {table}"))
         await session.commit()
 

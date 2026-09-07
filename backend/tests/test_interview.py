@@ -11,10 +11,15 @@ FAKE_ANALYSIS = (
 FAKE_TURN = '{"score": 80, "feedback": "回答紧扣岗位，结构清晰", "next_question": "你为什么选择这个方向？"}'
 
 
-async def _register_login(client, email):
-    await client.post("/api/auth/register", json={"email": email, "password": "supersecret"})
+async def _register_login(client, email, password: str = "supersecret"):
+    rc = await client.post("/api/auth/register/request-code", json={"email": email})
+    code = rc.json()["dev_code"]
+    await client.post(
+        "/api/auth/register/verify",
+        json={"email": email, "code": code, "password": password},
+    )
     r = await client.post(
-        "/api/auth/login", data={"username": email, "password": "supersecret"}
+        "/api/auth/login", data={"username": email, "password": password}
     )
     return r.json()["access_token"]
 

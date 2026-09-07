@@ -17,8 +17,13 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('cf_user', JSON.stringify(user.value))
   }
 
-  async function register(email: string, password: string) {
-    await api.register(email, password)
+  async function requestCode(email: string): Promise<string | null> {
+    const res = await api.requestRegisterCode(email)
+    return res.dev_code
+  }
+
+  async function register(email: string, code: string, password: string) {
+    await api.verifyRegister(email, code, password)
     await login(email, password)
   }
 
@@ -29,5 +34,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('cf_user')
   }
 
-  return { token, user, login, register, logout }
+  return { token, user, login, requestCode, register, logout }
 })

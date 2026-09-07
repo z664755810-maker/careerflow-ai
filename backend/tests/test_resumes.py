@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 
-async def _register_login(client, email: str):
+async def _register_login(client, email: str, password: str = "supersecret"):
+    rc = await client.post("/api/auth/register/request-code", json={"email": email})
+    code = rc.json()["dev_code"]
     await client.post(
-        "/api/auth/register", json={"email": email, "password": "supersecret"}
+        "/api/auth/register/verify",
+        json={"email": email, "code": code, "password": password},
     )
     r = await client.post(
-        "/api/auth/login", data={"username": email, "password": "supersecret"}
+        "/api/auth/login", data={"username": email, "password": password}
     )
     return r.json()["access_token"]
 

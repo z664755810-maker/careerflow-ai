@@ -31,8 +31,21 @@ api.interceptors.response.use(
 )
 
 // ---------- 鉴权 ----------
-export async function register(email: string, password: string): Promise<User> {
-  const { data } = await api.post<User>('/auth/register', { email, password })
+export async function requestRegisterCode(
+  email: string,
+): Promise<{ dev_code: string | null; message: string }> {
+  const { data } = await api.post<{ dev_code: string | null; message: string }>(
+    '/auth/register/request-code',
+    { email },
+  )
+  return data
+}
+export async function verifyRegister(
+  email: string,
+  code: string,
+  password: string,
+): Promise<User> {
+  const { data } = await api.post<User>('/auth/register/verify', { email, code, password })
   return data
 }
 

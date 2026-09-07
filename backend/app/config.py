@@ -43,6 +43,20 @@ class Settings(BaseSettings):
     # 测试/本地不希望被灌数据时可设为 0。
     auto_seed: bool = True
 
+    # ----- 邮件（注册验证码）-----
+    # 未配置时进入「开发态」：不真发信，验证码由接口直接返回前端展示（演示用，零成本）。
+    # 配置后走真实 SMTP（Resend / Gmail / 阿里云 DirectMail 均支持标准 SMTP 协议）。
+    smtp_host: str = ""
+    smtp_port: int = 465
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "noreply@careerflow.app"
+
+    @property
+    def smtp_configured(self) -> bool:
+        """是否已完成 SMTP 配置（三项齐备才算配置好）。"""
+        return bool(self.smtp_host and self.smtp_user and self.smtp_password)
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

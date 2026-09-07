@@ -245,6 +245,7 @@ npm run dev        # Vite 代理 /api → localhost:8000
 | `LLM_MODEL` | `glm-4-flash` | 如 `qwen-plus` |
 | `AUTO_SEED` | `1`（True） | 空库自动灌演示数据；本地不想被灌可设 `0` |
 | `CORS_ORIGINS` | `localhost:5173` | 独立部署前端时填 Vercel 域名（逗号分隔） |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_FROM` | 空（开发态） | 注册验证码邮件。三项（`HOST/USER/PASSWORD`）齐备才视为已配置；否则进入**开发态**：不真发信，验证码由接口返回前端直接展示。兼容 Resend / Gmail / 阿里云 DirectMail 标准 SMTP |
 
 **部署到 Render（Free）**
 1. GitHub 推送到仓库。
@@ -262,6 +263,7 @@ npm run dev        # Vite 代理 /api → localhost:8000
 3. **前端包体**：`index.js` 约 1.1MB（Element Plus 全量引入），可改按需引入 / `manualChunks` 优化首屏。
 4. **分析无缓存（技术债）**：同一对简历/JD 重复点分析会重复调用 LLM 花钱；可做 `UNIQUE(resume_id, job_id)` 命中即返回历史（已记入 EXTENSIONS.md）。
 5. **LLM 依赖外部**：免费档可能限流（429），部署推荐通义 `qwen-plus` 或自备 key。
+6. **邮箱验证码为开发态**：为保持演示站点零成本、零依赖，默认未配 SMTP，注册验证码直接在前端展示（而非真实发信）。需要真实发信时，配置 `SMTP_*` 环境变量即可自动切换，无需改代码。
 
 ---
 

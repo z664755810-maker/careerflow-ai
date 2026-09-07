@@ -37,6 +37,27 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class RegisterRequest(BaseModel):
+    """请求验证码：仅需邮箱。"""
+
+    email: EmailStr
+
+
+class RegisterVerify(BaseModel):
+    """校验验证码并创建账号。"""
+
+    email: EmailStr
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+    password: str = Field(min_length=8, max_length=128)
+
+
+class RegisterCodeOut(BaseModel):
+    """请求验证码的响应：开发态会携带 dev_code 供前端展示。"""
+
+    dev_code: str | None = None
+    message: str
+
+
 # ---------- 简历 ----------
 class ResumeCreate(BaseModel):
     title: str = Field(min_length=1, max_length=255)

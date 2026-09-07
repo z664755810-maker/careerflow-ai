@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -173,6 +173,24 @@ class InterviewSession(Base):
     )
 
     owner: Mapped["User"] = relationship(back_populates="interviews")
+
+
+class VerificationCode(Base):
+    """邮箱验证码：用于注册时邮箱验证。
+
+    设计取舍：开发态（未配置 SMTP）不真发信，验证码由接口直接返回前端展示，
+    保证演示站点无需邮件服务即可走通完整注册流程。
+    """
+
+    __tablename__ = "verification_codes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    code: Mapped[str] = mapped_column(String(16), nullable=False)
+    purpose: Mapped[str] = mapped_column(String(20), default="register", nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
 # User 关系补充（与上面各子表保持一致）
