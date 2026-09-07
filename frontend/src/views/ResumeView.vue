@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import * as api from '../utils/api'
 import type { Resume } from '../types'
 
@@ -116,13 +115,13 @@ async function onResumeFile(e: Event) {
     <el-table :data="resumes" v-loading="loading" empty-text="还没有简历，点右上角新建">
       <el-table-column prop="title" label="标题" min-width="220" />
       <el-table-column label="更新时间" width="200">
-        <template #default="{ row }">{{ new Date(row.updated_at).toLocaleString() }}</template>
+        <template #default="{ row }">{{ new Date((row as Resume).updated_at).toLocaleString() }}</template>
       </el-table-column>
       <el-table-column label="操作" width="200" align="right">
         <template #default="{ row }">
-          <el-button size="small" link type="primary" @click="openView(row)">查看</el-button>
-          <el-button size="small" @click="openEdit(row)">编辑</el-button>
-          <el-button size="small" type="danger" @click="remove(row)">删除</el-button>
+          <el-button size="small" link type="primary" @click="openView(row as Resume)">查看</el-button>
+          <el-button size="small" @click="openEdit(row as Resume)">编辑</el-button>
+          <el-button size="small" type="danger" @click="remove(row as Resume)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import * as api from '../utils/api'
 import type { Application, ApplicationStatus, Job, Resume } from '../types'
 

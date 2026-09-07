@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import * as api from '../utils/api'
 import RadarChart from '../components/RadarChart.vue'
 import type { Analysis, Job, Resume } from '../types'
@@ -76,7 +75,7 @@ async function loadAll() {
   ])
 }
 
-async function analyze() {
+async function analyze(force = false) {
   if (!resumeId.value || !jobId.value) {
     ElMessage.warning('请先选择一份简历和一个 JD')
     return
@@ -84,10 +83,19 @@ async function analyze() {
   loading.value = true
   result.value = null
   try {
-    const a = await api.createAnalysis(resumeId.value, jobId.value)
+    // 调接口前先记下该「简历×JD」组合是否已有记录，用于区分「命中缓存」还是「新生成」
+    const before = analyses.value.find(
+      (a) => a.resume_id === resumeId.value && a.job_id === jobId.value,
+    )
+    const a = await api.createAnalysis(resumeId.value, jobId.value, force)
     result.value = a
     await loadAll()
-    ElMessage.success('分析完成')
+    if (!force && before && before.id === a.id) {
+      // 后端命中缓存：直接返回旧记录，未重复调用 LLM
+      ElMessage.info('已命中缓存（该简历×JD 之前分析过，未重复调用 AI，点「重新分析」可强制刷新）')
+    } else {
+      ElMessage.success(force ? '已重新分析并生成新结果' : '分析完成')
+    }
   } catch (e: any) {
     ElMessage.error(e.response?.data?.detail || '分析失败')
   } finally {
@@ -186,7 +194,10 @@ onMounted(loadAll)
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="loading" @click="analyze">开始分析</el-button>
+          <el-button type="primary" :loading="loading" @click="analyze(false)">开始分析</el-button>
+          <el-button :loading="loading" @click="analyze(true)" style="margin-left: 8px">
+            重新分析（调 AI）
+          </el-button>
         </el-form-item>
       </el-form>
       <el-alert
@@ -247,21 +258,21 @@ onMounted(loadAll)
       </div>
       <el-table :data="analyses" empty-text="暂无历史，生成一条分析即可看到记录">
         <el-table-column label="简历" min-width="170">
-          <template #default="{ row }">{{ resumeMap[row.resume_id] ?? '-' }}</template>
+          <template #default="{ row }">{{ resumeMap[(row as Analysis).resume_id as number] ?? '-' }}</template>
         </el-table-column>
         <el-table-column label="职位 JD" min-width="170">
-          <template #default="{ row }">{{ jobMap[row.job_id] ?? '-' }}</template>
+          <template #default="{ row }">{{ jobMap[(row as Analysis).job_id as number] ?? '-' }}</template>
         </el-table-column>
         <el-table-column label="匹配分" width="100">
           <template #default="{ row }">
-            <el-tag :type="scoreTag(row.match_score)">{{ row.match_score ?? '-' }}</el-tag>
+            <el-tag :type="scoreTag((row as Analysis).match_score)">{{ (row as Analysis).match_score ?? '-' }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="四维" min-width="170">
           <template #default="{ row }">
-            <span v-if="hasDims(row)" style="display: flex; gap: 4px; flex-wrap: wrap">
+            <span v-if="hasDims(row as Analysis)" style="display: flex; gap: 4px; flex-wrap: wrap">
               <span
-                v-for="d in dimsOf(row)"
+                v-for="d in dimsOf(row as Analysis)"
                 :key="d.name"
                 class="dim-chip"
                 :style="{ borderColor: dimColor(d.value), color: dimColor(d.value) }"
@@ -271,12 +282,12 @@ onMounted(loadAll)
           </template>
         </el-table-column>
         <el-table-column label="时间" width="170">
-          <template #default="{ row }">{{ new Date(row.created_at).toLocaleString() }}</template>
+          <template #default="{ row }">{{ new Date((row as Analysis).created_at).toLocaleString() }}</template>
         </el-table-column>
         <el-table-column label="操作" width="150" align="right">
           <template #default="{ row }">
-            <el-button size="small" link type="primary" @click="openDetail(row)">查看</el-button>
-            <el-button size="small" link type="danger" @click="remove(row)">删除</el-button>
+            <el-button size="small" link type="primary" @click="openDetail(row as Analysis)">查看</el-button>
+            <el-button size="small" link type="danger" @click="remove(row as Analysis)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

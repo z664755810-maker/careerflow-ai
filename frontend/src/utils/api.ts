@@ -180,8 +180,9 @@ export async function deleteApplication(id: number): Promise<void> {
 export async function createAnalysis(
   resume_id: number,
   job_id: number,
+  force = false,
 ): Promise<Analysis> {
-  const { data } = await api.post<Analysis>('/analysis', { resume_id, job_id })
+  const { data } = await api.post<Analysis>('/analysis', { resume_id, job_id, force })
   return data
 }
 export async function listAnalyses(): Promise<Analysis[]> {

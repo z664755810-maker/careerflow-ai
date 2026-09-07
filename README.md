@@ -249,5 +249,7 @@ Render 控制台 → **New** → **Blueprint** → 选仓库，自动按 `render
 - [x] 投递管理看板（Application Tracker：状态机 `wishlist→applied→interview→offer→rejected` 闭环 + 看板 UI + 统计卡 + 5 条示例投递）
 - [x] AI 分析多维化（技能/经验/学历/薪资四维子分 + 零依赖 SVG 雷达图，种子数据即带子分）
 - [x] 模拟面试对话（多轮评估 + 累计均分 + 会话持久化 + 越权隔离 404 + 示例会话 seed，前端聊天式 UI）
+- [x] AI 分析缓存去重（同一「简历×JD」仅保留一条分析结果；非 force 命中缓存直接返回、不重复调 LLM，force 可强制重算；数据库唯一索引 `uq_analysis_owner_resume_job` 兜底防并发重复）
+- [x] 前端 Element Plus 按需引入（unplugin-auto-import + unplugin-vue-components，取代全量 `app.use(ElementPlus)`；主包 JS 1.11MB→310KB、CSS 364KB→42KB，组件按使用懒加载）
 - [ ] 部署上线拿可点链接（需你提供 Render 账号，按上文部署步骤操作；我无 Render 凭证，无法代点控制台）
 - [ ] 演示截图（部署后浏览器实测补充）

@@ -91,18 +91,18 @@ onMounted(loadAll)
       </div>
       <el-table :data="recent" empty-text="还没有分析记录，去「AI 分析」生成第一条吧">
         <el-table-column label="简历" min-width="160">
-          <template #default="{ row }">{{ resumeMap[row.resume_id] ?? '-' }}</template>
+          <template #default="{ row }">{{ resumeMap[(row as Analysis).resume_id as number] ?? '-' }}</template>
         </el-table-column>
         <el-table-column label="职位 JD" min-width="160">
-          <template #default="{ row }">{{ jobMap[row.job_id] ?? '-' }}</template>
+          <template #default="{ row }">{{ jobMap[(row as Analysis).job_id as number] ?? '-' }}</template>
         </el-table-column>
         <el-table-column label="匹配分" width="110">
           <template #default="{ row }">
-            <el-tag :type="scoreTag(row.match_score)">{{ row.match_score ?? '-' }}</el-tag>
+            <el-tag :type="scoreTag((row as Analysis).match_score)">{{ (row as Analysis).match_score ?? '-' }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="时间" min-width="170">
-          <template #default="{ row }">{{ new Date(row.created_at).toLocaleString() }}</template>
+          <template #default="{ row }">{{ new Date((row as Analysis).created_at).toLocaleString() }}</template>
         </el-table-column>
       </el-table>
     </el-card>
