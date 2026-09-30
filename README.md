@@ -1,7 +1,7 @@
 # CareerFlow AI · 智能求职助手
 
 > 校招求职场景的全栈 AI 应用：**上传简历 / JD → LLM 分析匹配度 + 生成模拟面试问题**。
-> 本项目刻意补齐「整套现代开发流程」：真实数据库 + 迁移、JWT 鉴权、前端构建、Docker、CI、可上线部署。
+> 完整覆盖数据库设计、鉴权、前端构建、容器化、CI 与云端部署。
 
 ---
 
@@ -174,10 +174,8 @@ docker compose up --build
 
 ## 部署（Render · Docker 单服务，前后端同源托管）
 
-> 借鉴自同构 RAG 项目的 Render 部署剧本，适配 CareerFlow：
 > 多阶段 Docker 把前端 `dist` 拷进后端 `/app/static` 同源托管，免 CORS；
 > `start.py` 直接读 `$PORT`；自动 seed 应对 Render 临时文件系统重启丢库。
-> （RAG 项目的 `EMBEDDING_PROVIDER` 等 Chroma 专属配置不适用，本项目的 LLM 配置用 `LLM_*` 承载。）
 
 ### 方式 A：控制台手动（最直观）
 
@@ -210,7 +208,7 @@ Render 控制台 → **New** → **Blueprint** → 选仓库，自动按 `render
 
 > **安全红线**：真实 Key 只配在 Render 控制台 Environment，**绝不要写进仓库文件**（含 docs）。
 > 本地 `.env` 已被 `.gitignore` 忽略；一旦在聊天/提交里暴露过，去对应平台「重新生成」新 Key。
-> 演示账号 `demo@careerflow.app / CareerFlow2026` 为公开演示用，仅供作品集体验。
+> 演示账号 `demo@careerflow.app / CareerFlow2026` 为公开演示用。
 
 ### 验证（部署后必做）
 
@@ -251,5 +249,3 @@ Render 控制台 → **New** → **Blueprint** → 选仓库，自动按 `render
 - [x] 模拟面试对话（多轮评估 + 累计均分 + 会话持久化 + 越权隔离 404 + 示例会话 seed，前端聊天式 UI）
 - [x] AI 分析缓存去重（同一「简历×JD」仅保留一条分析结果；非 force 命中缓存直接返回、不重复调 LLM，force 可强制重算；数据库唯一索引 `uq_analysis_owner_resume_job` 兜底防并发重复）
 - [x] 前端 Element Plus 按需引入（unplugin-auto-import + unplugin-vue-components，取代全量 `app.use(ElementPlus)`；主包 JS 1.11MB→310KB、CSS 364KB→42KB，组件按使用懒加载）
-- [ ] 部署上线拿可点链接（需你提供 Render 账号，按上文部署步骤操作；我无 Render 凭证，无法代点控制台）
-- [ ] 演示截图（部署后浏览器实测补充）
